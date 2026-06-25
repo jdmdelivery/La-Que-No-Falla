@@ -94,7 +94,12 @@
                 <span class="numero numero-gris">{{ r.tercero or '--' }}</span>
                 {% endif %}
                 </td>
-                <td id="fecha_{{ r.lottery }}_{{ r.draw or '' }}"><span class="res-fecha-chip">{{ r.fecha_display or '—' }}</span></td>
+                <td id="fecha_{{ r.lottery }}_{{ r.draw or '' }}">
+                <span class="res-fecha-chip">{{ r.fecha_display or '—' }}</span>
+                {% if r.ultimo_publicado %}
+                <span class="res-ultimo-tag" style="display:block;font-size:10px;font-weight:800;color:#64748b;margin-top:2px">último publicado</span>
+                {% endif %}
+                </td>
                 <td id="cierre_{{ r.lottery }}_{{ r.draw or '' }}"><span class="res-cierre-chip">{{ r.hora_cierre or r.draw_display or r.draw or '—' }}</span></td>
             </tr>
             {% endfor %}

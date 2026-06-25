@@ -16214,13 +16214,16 @@ def caja_cerrada_hoy():
         cur = c.cursor()
         hoy = ahora_rd().strftime("%Y-%m-%d")
         cur.execute(_sql("""
-            SELECT COUNT(*)
+            SELECT COUNT(*) AS n
             FROM cash_closings
             WHERE date = %s
         """), (hoy,))
         row = cur.fetchone()
-        n = list(row.values())[0] if hasattr(row, "values") else row[0]
-        return n > 0
+        n = _row_sum_scalar(row)
+        return float(n or 0) > 0
+    except Exception as e:
+        log.warning("caja_cerrada_hoy: %s", e, exc_info=True)
+        return False
     finally:
         _db_close(c, cur)
 
@@ -32873,7 +32876,134 @@ def _marcar_sale_key_ticket(cur, sale_key, ticket_id):
     key = _normalizar_sale_key(sale_key)
     if not key or not ticket_id:
         return
-    cur.execute(_sql("UPDATE sale_idempotency SET ticket_id = %s WHERE sale_key = %s"), (int(ticket_id), key))
+        cur.execute(_sql("UPDATE sale_idempotency SET ticket_id = %s WHERE sale_key = %s"), (int(ticket_id), key))
+
+
+def _log_venta_cajero_ctx(error=None, traceback_txt=None, exc_info=False):
+    """Log diagnóstico [VENTA CAJERO] para errores en /venta."""
+    role = _current_role()
+    if not is_cajero_staff() and role != ROLE_CAJERO:
+        return
+    banca_id = None
+    try:
+        uid = session.get("uid")
+        if uid:
+            c = db()
+            if c:
+                cur = c.cursor()
+                banca_id = _banca_id_para_usuario_actual(cur, uid)
+                _db_close(c, cur)
+    except Exception:
+        pass
+    tb = traceback_txt or (traceback.format_exc() if exc_info else "")
+    log.error(
+        "[VENTA CAJERO] usuario=%s role=%s cajero_id=%s banca_id=%s ruta=/venta error=%s traceback=%s",
+        session.get("u") or session.get("user"),
+        role,
+        session.get("uid"),
+        banca_id,
+        error,
+        tb,
+        exc_info=exc_info and not traceback_txt,
+    )
+
+
+def _venta_render_error_amigable(mensaje=None):
+    msg = mensaje or "No se pudo abrir la pantalla de venta. Intenta de nuevo en unos segundos."
+    return render_template_string(
+        IOS
+        + """
+        <div class="card text-center" style="max-width:520px;margin:24px auto">
+        <h2 class="danger">No se pudo abrir venta</h2>
+        <p style="margin:12px 0;color:#64748b">"""
+        + msg
+        + """</p>
+        <a href="/venta" style="display:inline-block;margin-top:12px;padding:10px 20px;background:#002D62;color:white;border-radius:8px;text-decoration:none">Reintentar</a>
+        <a href="/" style="display:inline-block;margin-top:12px;padding:10px 20px;color:#002D62">Volver al inicio</a>
+        </div>
+        """
+    )
+
+
+def _fetch_ventas_hoy_para_venta(cur, hoy_rd, usuario_scope, es_admin_scope, ultimo_vta):
+    """
+    Total ventas hoy en encabezado /venta.
+    PostgreSQL: tickets.created_at suele ser TEXT → fallback si AT TIME ZONE falla.
+    """
+    is_pg = bool(os.environ.get("DATABASE_URL"))
+    fv, pv = _frag_ticket_creado_despues_cierre(is_pg, ultimo_vta, "t")
+    cajero_sql = "" if es_admin_scope else " AND t.cajero = %s"
+    params = (hoy_rd,) + tuple(pv)
+    if not es_admin_scope:
+        params = (hoy_rd, usuario_scope) + tuple(pv)
+
+    if is_pg:
+        for label, sql in (
+            (
+                "PG AT TIME ZONE RD",
+                """
+                SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
+                FROM tickets t
+                WHERE (t.created_at AT TIME ZONE 'America/Santo_Domingo')::date = %s::date
+                AND COALESCE(t.monto, 0) > 0
+                """
+                + fv
+                + cajero_sql,
+            ),
+            (
+                "PG created_at::date",
+                """
+                SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
+                FROM tickets t
+                WHERE t.created_at::date = %s::date
+                AND COALESCE(t.monto, 0) > 0
+                """
+                + fv
+                + cajero_sql,
+            ),
+            (
+                "PG texto YYYY-MM-DD",
+                """
+                SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
+                FROM tickets t
+                WHERE left(trim(t.created_at::text), 10) = %s
+                AND COALESCE(t.monto, 0) > 0
+                """
+                + fv
+                + cajero_sql,
+            ),
+        ):
+            try:
+                cur.execute(_sql(sql), params)
+                return _row_sum_scalar(cur.fetchone())
+            except Exception as e:
+                log.warning("venta ventas_hoy (%s): %s", label, e, exc_info=True)
+                _rollback_pg_cursor(cur)
+        return 0.0
+
+    fv_sq, pv_sq = _frag_ticket_creado_despues_cierre(False, ultimo_vta, "t")
+    params_sq = (hoy_rd,) + tuple(pv_sq)
+    if not es_admin_scope:
+        params_sq = (hoy_rd, usuario_scope) + tuple(pv_sq)
+    try:
+        cur.execute(
+            _sql(
+                """
+                SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
+                FROM tickets t
+                WHERE DATE(t.created_at) = %s
+                AND COALESCE(t.monto, 0) > 0
+                """
+                + fv_sq
+                + ("" if es_admin_scope else " AND t.cajero = %s")
+            ),
+            params_sq,
+        )
+        return _row_sum_scalar(cur.fetchone())
+    except Exception as e:
+        log.warning("venta ventas_hoy SQLite: %s", e, exc_info=True)
+        _rollback_pg_cursor(cur)
+        return 0.0
 
 
 @app.route("/venta", methods=["GET","POST"])
@@ -33164,62 +33294,9 @@ def venta():
             usuario_scope, es_admin_scope = _ventas_scope()
             hoy_rd = ahora_rd().strftime("%Y-%m-%d")
             ultimo_vta = obtener_fecha_ultimo_cierre(cur)
-            fv_pg, pv_pg = _frag_ticket_creado_despues_cierre(True, ultimo_vta, "t")
-            fv_sq, pv_sq = _frag_ticket_creado_despues_cierre(False, ultimo_vta, "t")
-            if os.environ.get("DATABASE_URL"):
-                if es_admin_scope:
-                    cur.execute(
-                        """
-                        SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
-                        FROM tickets t
-                        WHERE (t.created_at AT TIME ZONE 'America/Santo_Domingo')::date = %s
-                        AND COALESCE(t.monto, 0) > 0
-                        """
-                        + fv_pg,
-                        (hoy_rd,) + tuple(pv_pg),
-                    )
-                else:
-                    cur.execute(
-                        """
-                        SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
-                        FROM tickets t
-                        WHERE (t.created_at AT TIME ZONE 'America/Santo_Domingo')::date = %s
-                        AND COALESCE(t.monto, 0) > 0
-                        AND t.cajero = %s
-                        """
-                        + fv_pg,
-                        (hoy_rd, usuario_scope) + tuple(pv_pg),
-                    )
-            else:
-                if es_admin_scope:
-                    cur.execute(
-                        _sql(
-                            """
-                        SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
-                        FROM tickets t
-                        WHERE DATE(t.created_at) = %s
-                        AND COALESCE(t.monto, 0) > 0
-                        """
-                            + fv_sq
-                        ),
-                        (hoy_rd,) + tuple(pv_sq),
-                    )
-                else:
-                    cur.execute(
-                        _sql(
-                            """
-                        SELECT COALESCE(SUM(t.monto), 0) AS ventas_hoy
-                        FROM tickets t
-                        WHERE DATE(t.created_at) = %s
-                        AND COALESCE(t.monto, 0) > 0
-                        AND t.cajero = %s
-                        """
-                            + fv_sq
-                        ),
-                        (hoy_rd, usuario_scope) + tuple(pv_sq),
-                    )
-            row_v = cur.fetchone()
-            ventas_hoy = float((list(row_v.values())[0] if row_v and hasattr(row_v, "values") else (row_v[0] if row_v else 0)) or 0)
+            ventas_hoy = _fetch_ventas_hoy_para_venta(
+                cur, hoy_rd, usuario_scope, es_admin_scope, ultimo_vta
+            )
 
             repetir_data = session.pop("repetir_data", None) or []
             sale_key = _generar_sale_key()
@@ -33809,6 +33886,14 @@ def venta():
             )
             _req_trace("venta() después render GET", ms=round((time.perf_counter() - t_render) * 1000, 2))
             return html_out
+    except Exception as e:
+        _log_venta_cajero_ctx(error=str(e), exc_info=True)
+        log.exception("venta() error inesperado")
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return _venta_render_error_amigable(), 500
     finally:
         _db_close(conn, cur)
 
@@ -37367,12 +37452,19 @@ def api_resultados_hoy():
             item["n2"] = item.get("segundo")
             item["n3"] = item.get("tercero")
             fd = _parse_iso_date_only(item.get("fecha"))
+            hoy_d_api = _parse_iso_date_only(hoy)
             if fd:
-                item["fecha_display"] = fd.strftime("%m-%d")
+                item["fecha_display"] = fd.strftime("%d-%m-%Y")
                 item["fecha_visual_iso"] = fd.strftime("%Y-%m-%d")
+                item["ultimo_publicado"] = bool(
+                    _ganadores_grilla_fila_tiene_numeros(item)
+                    and hoy_d_api
+                    and fd < hoy_d_api
+                )
             else:
                 item["fecha_display"] = "—"
                 item["fecha_visual_iso"] = ""
+                item["ultimo_publicado"] = False
             item.pop("fecha", None)
         return jsonify(out)
     finally:
@@ -37413,6 +37505,38 @@ def _ganadores_try_load_pagos_config(cur):
         return out if out else None
     except Exception:
         _rollback_pg_cursor(cur)
+        return None
+
+
+def _row_first_scalar(row):
+    """Primer valor de una fila (sqlite3.Row, RealDictRow, tupla)."""
+    if row is None:
+        return None
+    try:
+        if hasattr(row, "get"):
+            for key in ("m", "s", "n", "ventas_hoy", "count"):
+                try:
+                    if key in row:
+                        return row[key]
+                except TypeError:
+                    break
+    except Exception:
+        pass
+    try:
+        if hasattr(row, "values"):
+            return next(iter(row.values()), None)
+    except Exception:
+        pass
+    try:
+        if hasattr(row, "keys"):
+            k0 = next(iter(row.keys()), None)
+            if k0 is not None:
+                return row[k0]
+    except Exception:
+        pass
+    try:
+        return row[0]
+    except Exception:
         return None
 
 
@@ -39521,7 +39645,7 @@ def get_ultimo_fecha_cierre_caja_periodo(cur):
         row = cur.fetchone()
         if not row:
             return None
-        v = list(row.values())[0] if hasattr(row, "keys") else row[0]
+        v = _row_first_scalar(row)
         if v is not None and str(v).strip() != "":
             return v
     except Exception:
@@ -44671,7 +44795,9 @@ def _premios_sync_por_sorteo(cur, fecha: str, loteria: str, hora_sorteo: str, ca
                   AND (tk.created_at AT TIME ZONE 'America/Santo_Domingo')::date
                       = to_date(substr(NULLIF(trim(CAST(tl.fecha_sorteo AS text)), ''), 1, 10), 'YYYY-MM-DD')
                   AND COALESCE(tl.estado, 'activo') <> 'cancelado'
-                  {caj_filter_pg}
+                """
+                + caj_filter_pg
+                + """
                 ORDER BY tl.ticket_id, tl.id
                 """,
                 tuple(bind_tail),
@@ -47272,6 +47398,197 @@ def _ganadores_catalogo_clave_bd(lot, draw):
     return clave_unica_resultado_fila({"lottery": lot0, "draw": dr0})
 
 
+def _ganadores_resultados_row_dict(r):
+    """Convierte fila SQL (dict / sqlite3.Row / tupla) a dict homogéneo."""
+    if not r:
+        return {}
+    if isinstance(r, dict):
+        d = dict(r)
+    elif hasattr(r, "keys"):
+        try:
+            d = {k: r[k] for k in r.keys()}
+        except Exception:
+            d = dict(r)
+    else:
+        d = {
+            "lottery": r[0] if len(r) > 0 else "",
+            "draw": r[1] if len(r) > 1 else "",
+            "primero": r[2] if len(r) > 2 else "",
+            "segundo": r[3] if len(r) > 3 else "",
+            "tercero": r[4] if len(r) > 4 else "",
+            "fecha": r[5] if len(r) > 5 else None,
+        }
+    if d.get("fecha") is None and d.get("fecha_rd") is not None:
+        d["fecha"] = d.get("fecha_rd")
+    return d
+
+
+def _ganadores_log_resultado_lookup(
+    fecha_consultada,
+    fecha_rd,
+    loteria,
+    sorteo,
+    resultado_encontrado,
+    fuente,
+    motivo_si_vacio="",
+):
+    log.info(
+        "[GANADORES RESULTADOS] fecha_consultada=%s fecha_rd=%s loteria=%s sorteo=%s "
+        "resultado_encontrado=%s fuente=%s motivo_si_vacio=%s",
+        fecha_consultada,
+        fecha_rd,
+        loteria,
+        sorteo,
+        resultado_encontrado,
+        fuente,
+        motivo_si_vacio or "",
+    )
+
+
+def _ganadores_resultados_row_catalog_keys(lot, draw):
+    """Claves de casillero del catálogo oficial que puede cubrir una fila cruda de BD."""
+    keys = set()
+    lot_s = str(lot or "").strip()
+    dr_s = str(draw or "").strip()
+    nk = _ganadores_catalogo_clave_bd(lot_s, dr_s)
+    if nk:
+        keys.add(nk)
+    lot_norm = normalizar_loteria(lot_s) or lot_s
+    if lot_norm != lot_s:
+        nk_ln = _ganadores_catalogo_clave_bd(lot_norm, dr_s)
+        if nk_ln:
+            keys.add(nk_ln)
+    combo = f"{lot_s} {dr_s}".strip()
+    for internal_key, (lot_db, draw_db) in RESULT_LOTTERY_TO_TICKET.items():
+        if (
+            lot_s == internal_key
+            or dr_s == internal_key
+            or combo == internal_key
+            or lot_norm == internal_key
+        ):
+            nk2 = _ganadores_catalogo_clave_bd(lot_db, draw_db)
+            if nk2:
+                keys.add(nk2)
+    return keys
+
+
+def _ganadores_resultados_loteria_draw_candidates(lottery_cat, draw_raw):
+    """Nombres/horas posibles en BD para un casillero del catálogo oficial."""
+    lot_cat = normalizar_loteria(lottery_cat) or str(lottery_cat or "").strip()
+    dr_eff = _draw_efectivo_jugada(lot_cat, draw_raw)
+    dr_norm = normalizar_sorteo(dr_eff) or normalizar_sorteo(draw_raw) or str(draw_raw or "").strip()
+    loteria_candidates = {lot_cat}
+    draw_candidates = set()
+    if dr_norm:
+        draw_candidates.add(dr_norm)
+        dr_std = formatear_hora_estandar(dr_norm) or ""
+        if dr_std:
+            draw_candidates.add(dr_std)
+        dr_canon = draw_almacen_canonico(dr_norm) or ""
+        if dr_canon:
+            draw_candidates.add(dr_canon)
+    cat_nk = _ganadores_catalogo_clave_bd(lot_cat, dr_norm)
+    internal_keys = []
+    for internal_key, (lot_db, draw_db) in RESULT_LOTTERY_TO_TICKET.items():
+        if _ganadores_catalogo_clave_bd(lot_db, draw_db) == cat_nk:
+            internal_keys.append(internal_key)
+            loteria_candidates.add(internal_key)
+            loteria_candidates.add(lot_db)
+            dn = normalizar_sorteo(draw_db) or str(draw_db or "").strip()
+            if dn:
+                draw_candidates.add(dn)
+    return lot_cat, dr_norm, cat_nk, sorted(loteria_candidates), sorted(draw_candidates), internal_keys
+
+
+def _ganadores_resultados_fetch_latest_para_catalogo(cur, lottery_cat, draw_raw, hoy_str=None):
+    """
+    Último resultado en BD para un casillero del catálogo (sin límite inferior de ventana).
+    Cubre nombres legacy (Florida Día, King Lottery 12:30, etc.).
+    """
+    hoy_str = str(hoy_str or ahora_rd().date().strftime("%Y-%m-%d"))[:10]
+    lot_cat, dr_norm, cat_nk, loteria_candidates, draw_candidates, _ = (
+        _ganadores_resultados_loteria_draw_candidates(lottery_cat, draw_raw)
+    )
+    if not lot_cat or not cat_nk:
+        _ganadores_log_resultado_lookup(
+            hoy_str, hoy_str, lottery_cat, draw_raw, False, "sql_ultimo", "sin_catalogo"
+        )
+        return None
+
+    rows = []
+    lots = [x for x in loteria_candidates if x]
+    if not lots:
+        return None
+    try:
+        if os.environ.get("DATABASE_URL"):
+            _fd = _sql_expr_resultados_fecha_calendario_rd_pg("fecha")
+            cur.execute(
+                f"""
+                SELECT lottery, draw, primero, segundo, tercero, {_fd} AS fecha_rd
+                FROM resultados
+                WHERE lottery = ANY(%s)
+                ORDER BY {_fd} DESC NULLS LAST, id DESC
+                LIMIT 400
+                """,
+                (lots,),
+            )
+            rows = cur.fetchall() or []
+        else:
+            _fds = _sql_expr_resultados_fecha_calendario_rd_sqlite("fecha")
+            ph_lots = ",".join(["%s"] * len(lots))
+            cur.execute(
+                _sql(
+                    f"""
+                    SELECT lottery, draw, primero, segundo, tercero, """
+                    + _fds
+                    + """ AS fecha_rd
+                    FROM resultados
+                    WHERE lottery IN ("""
+                    + ph_lots
+                    + """)
+                    ORDER BY """
+                    + _fds
+                    + """ DESC, id DESC
+                    LIMIT 400
+                    """
+                ),
+                tuple(lots),
+            )
+            rows = cur.fetchall() or []
+    except Exception as exc:
+        log.warning("_ganadores_resultados_fetch_latest_para_catalogo: %s", exc, exc_info=True)
+        _ganadores_log_resultado_lookup(
+            hoy_str, hoy_str, lottery_cat, draw_raw, False, "sql_ultimo", str(exc)[:120]
+        )
+        return None
+
+    matches = []
+    for r in rows:
+        d = _ganadores_resultados_row_dict(r)
+        row_keys = _ganadores_resultados_row_catalog_keys(d.get("lottery"), d.get("draw"))
+        if cat_nk not in row_keys:
+            continue
+        dr_row = normalizar_sorteo(d.get("draw") or "") or str(d.get("draw") or "").strip()
+        if draw_candidates and dr_row and dr_row not in draw_candidates:
+            dr_eff_row = normalizar_sorteo(_draw_efectivo_jugada(d.get("lottery"), d.get("draw")) or "")
+            if dr_eff_row and dr_eff_row not in draw_candidates:
+                continue
+        if not _ganadores_grilla_fila_tiene_numeros(d):
+            continue
+        matches.append(d)
+
+    if not matches:
+        _ganadores_log_resultado_lookup(
+            hoy_str, hoy_str, lottery_cat, draw_raw, False, "sql_ultimo", "sin_fila_con_numeros"
+        )
+        return None
+
+    def _fecha_key(d):
+        return _parse_iso_date_only(d.get("fecha")) or date.min
+
+    return max(matches, key=_fecha_key)
+
+
 def _ganadores_resultados_buckets_ventana(cur, fecha_desde, fecha_hasta):
     """Agrupa filas de `resultados` entre dos fechas (calendario RD) por casillero oficial."""
     from collections import defaultdict
@@ -47326,23 +47643,8 @@ def _ganadores_resultados_buckets_ventana(cur, fecha_desde, fecha_hasta):
         return buckets
 
     for r in rows:
-        if hasattr(r, "keys"):
-            d = dict(r)
-            d["fecha"] = d.get("fecha_rd") if d.get("fecha_rd") is not None else d.get("fecha")
-        else:
-            lot = r[0] if len(r) > 0 else ""
-            draw = r[1] if len(r) > 1 else ""
-            d = {
-                "lottery": lot,
-                "draw": draw,
-                "primero": r[2] if len(r) > 2 else "",
-                "segundo": r[3] if len(r) > 3 else "",
-                "tercero": r[4] if len(r) > 4 else "",
-                "fecha": r[5] if len(r) > 5 else None,
-            }
-
-        nk = _ganadores_catalogo_clave_bd(d.get("lottery"), d.get("draw"))
-        if nk:
+        d = _ganadores_resultados_row_dict(r)
+        for nk in _ganadores_resultados_row_catalog_keys(d.get("lottery"), d.get("draw")):
             buckets[nk].append(d)
 
     return buckets
@@ -47417,6 +47719,18 @@ def _ganadores_grilla_resultados_catalogo_fallback(cur, hoy_str):
                 reverse=True,
             )
             picked = _ganadores_catalogo_pick_fila_prioridad(cand_sorted, hoy_d)
+            fuente = "ventana"
+            motivo_vacio = ""
+
+            if not picked or not _ganadores_grilla_fila_tiene_numeros(picked):
+                motivo_vacio = "sin_match_ventana"
+                picked_sql = _ganadores_resultados_fetch_latest_para_catalogo(
+                    cur, lottery_cat, draw_raw, hoy_str
+                )
+                if picked_sql:
+                    picked = picked_sql
+                    fuente = "sql_ultimo"
+                    motivo_vacio = ""
 
             if picked and isinstance(picked, dict):
                 row = dict(picked)
@@ -47425,6 +47739,15 @@ def _ganadores_grilla_resultados_catalogo_fallback(cur, hoy_str):
                 _normalizar_campos_horario_compacto_fila(row)
                 row["lottery_display"] = (row["lottery"] or "") + (
                     (" " + str(row["draw"] or "").strip()) if row.get("draw") else ""
+                )
+                _ganadores_log_resultado_lookup(
+                    hoy_str,
+                    str(row.get("fecha") or "")[:10],
+                    lottery_cat,
+                    draw_disp,
+                    True,
+                    fuente,
+                    "",
                 )
             else:
                 row = {
@@ -47438,6 +47761,15 @@ def _ganadores_grilla_resultados_catalogo_fallback(cur, hoy_str):
                 _normalizar_campos_horario_compacto_fila(row)
                 row["lottery_display"] = (row["lottery"] or "") + (
                     (" " + str(row["draw"] or "").strip()) if row.get("draw") else ""
+                )
+                _ganadores_log_resultado_lookup(
+                    hoy_str,
+                    hoy_str,
+                    lottery_cat,
+                    draw_disp,
+                    False,
+                    fuente,
+                    motivo_vacio or "sin_datos_bd",
                 )
             grid.append(row)
     return grid
@@ -47475,7 +47807,7 @@ def _ganadores_resultados_meta_tarjeta(rows, hoy_str):
         if fd and (ultima_d is None or fd > ultima_d):
             ultima_d = fd
     pendiente = not _ganadores_grilla_alguno_oficial_hoy_con_datos(rows, hoy_str)
-    ultima_label = ultima_d.strftime("%d-%m") if ultima_d else ""
+    ultima_label = ultima_d.strftime("%d-%m-%Y") if ultima_d else ""
     return {
         "resultados_pendientes_hoy": pendiente,
         "resultados_ultima_fecha_display": ultima_label,
@@ -47497,7 +47829,11 @@ def _ganadores_resultados_refresh_grilla_visual(cur, hoy_str):
     if ttl_sec > 0:
         cached_rows = _ttl_cache_peek("resultados", cache_ck)
         if cached_rows is not None:
-            return cached_rows
+            if any(
+                isinstance(r, dict) and _ganadores_grilla_fila_tiene_numeros(r)
+                for r in (cached_rows or [])
+            ):
+                return cached_rows
 
     try:
         resultados_hoy = _ganadores_grilla_resultados_catalogo_fallback(cur, hoy_str)
@@ -47519,14 +47855,24 @@ def _ganadores_resultados_refresh_grilla_visual(cur, hoy_str):
             _resultados_finalizar_display_horario(_rf)
             _resultado_row_set_color_por_sorteo_rd(_rf, hoy_str)
             _fd_rf = _parse_iso_date_only(_rf.get("fecha"))
+            hoy_d_rf = _parse_iso_date_only(hoy_str)
             if _fd_rf:
-                _rf["fecha_display"] = _fd_rf.strftime("%m-%d")
+                _rf["fecha_display"] = _fd_rf.strftime("%d-%m-%Y")
                 _rf["fecha_visual_iso"] = _fd_rf.strftime("%Y-%m-%d")
+                _rf["ultimo_publicado"] = bool(
+                    _ganadores_grilla_fila_tiene_numeros(_rf)
+                    and hoy_d_rf
+                    and _fd_rf < hoy_d_rf
+                )
             else:
                 _rf["fecha_display"] = "—"
                 _rf["fecha_visual_iso"] = ""
+                _rf["ultimo_publicado"] = False
 
-        if ttl_sec > 0:
+        if ttl_sec > 0 and any(
+            isinstance(r, dict) and _ganadores_grilla_fila_tiene_numeros(r)
+            for r in (resultados_hoy or [])
+        ):
             _ttl_cache_store_put("resultados", cache_ck, resultados_hoy, ttl_sec)
         return resultados_hoy
     except Exception as _grilla_ex:
