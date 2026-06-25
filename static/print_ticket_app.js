@@ -560,6 +560,27 @@
   function ensureTopbarStats() {
     var topbar = document.querySelector(".topbar");
     if (!topbar) return;
+
+    var isMob = false;
+    try {
+      isMob = window.matchMedia("(max-width: 768px)").matches;
+    } catch (_e) {}
+
+    var path = (window.location && window.location.pathname) || "";
+    var isDash = path === "/admin" || path.indexOf("/admin/limites") === 0;
+
+    if (isMob && !isDash) {
+      var orphan = document.getElementById("topbarStats");
+      if (orphan && orphan.parentNode) orphan.parentNode.removeChild(orphan);
+      return;
+    }
+
+    var parent = topbar;
+    if (isMob && isDash) {
+      var host = document.getElementById("mobDashStripHost");
+      if (host) parent = host;
+    }
+
     var stats = document.getElementById("topbarStats");
     if (!stats) {
       stats = document.createElement("div");
@@ -571,7 +592,9 @@
         + '<div class="topbar-stat" data-kind="clock"><i class="fa-regular fa-clock"></i><span class="topbar-stat__label">Fecha y hora</span><b class="topbar-stat__value">--</b></div>'
         + '<div class="topbar-stat" data-kind="noti"><i class="fa-regular fa-bell"></i><span class="topbar-stat__label">Notificaciones</span><b class="topbar-stat__value">En vivo</b></div>'
         + '<div class="topbar-stat" data-kind="user"><i class="fa-regular fa-user"></i><span class="topbar-stat__label">Bienvenido</span><b class="topbar-stat__value"></b></div>';
-      topbar.appendChild(stats);
+      parent.appendChild(stats);
+    } else if (stats.parentNode !== parent) {
+      parent.appendChild(stats);
     }
 
     if (typeof window.__applyMobileLayout === "function") {

@@ -41,7 +41,34 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Kill global widgets (page JS may re-show dashboard-only pieces) */
+  /* Neutralize desktop shell vars on all non-dashboard mobile pages */
+  body.ui-modern.mob-shell-active:not(.mob-page-dashboard) {
+    --metas-panel-h: 0px !important;
+    --vp-metas-h: 0px !important;
+    --vp-hero-logo-h: 0px !important;
+  }
+
+  body.ui-modern.mob-shell-active .metas-panel--premium:not(.mob-dash-ranking-host *) {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  body.ui-modern.mob-shell-active.mob-page-dashboard .mob-dash-ranking-host .metas-panel--premium {
+    position: relative !important;
+    left: auto !important;
+  }
+
+  /* Legacy admin menu fragment — hide on mobile */
+  body.ui-modern.mob-shell-active #adminTable,
+  body.ui-modern.mob-shell-active h3:has(+ #adminTable) {
+    display: none !important;
+  }
+
+  /* Kill global widgets */
   body.ui-modern .brand-hero-plate,
   body.ui-modern .venta-btn,
   body.ui-modern a.venta-btn {
@@ -182,8 +209,20 @@
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
     transform: none !important;
+    flex-shrink: 0 !important;
+    min-width: 0 !important;
+    max-width: 42vw !important;
+  }
+
+  body.ui-modern .topbar-actions .ar-bell-btn,
+  body.ui-modern .topbar-actions .logout-btn {
+    flex-shrink: 0 !important;
+  }
+
+  body.ui-modern .logout-btn__text {
+    display: inline !important;
   }
 
   body.ui-modern .logout-btn {
@@ -386,37 +425,147 @@
     display: none !important;
   }
 
-  /* Dashboard — primary KPI row */
-  body.ui-modern.mob-page-dashboard .metrics {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: var(--mob-gap) !important;
-    margin-bottom: var(--mob-gap) !important;
+  body.ui-modern.sidebar-open .topbar,
+  body.ui-modern.sidebar-open .dashboard,
+  body.ui-modern.sidebar-open .venta-wrap,
+  body.ui-modern.sidebar-open .reporte-wrap,
+  body.ui-modern.sidebar-open .card,
+  body.ui-modern.sidebar-open .wrap {
+    filter: none !important;
   }
 
-  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card,
-  body.ui-modern.mob-page-dashboard .metrics .admin-kpi--hidden,
-  body.ui-modern.mob-page-dashboard .metrics .loterias-card,
-  body.ui-modern.mob-page-dashboard .metrics > .card:not(.metric-card),
-  body.ui-modern.mob-page-dashboard .dashboard > div[style*="Banco General"],
+  body.ui-modern.sidebar-open .sb-backdrop.open {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* ─── DASHBOARD MÓVIL ─── */
+  body.ui-modern.mob-page-dashboard .mob-dash-welcome {
+    display: block !important;
+    margin: 0 0 var(--mob-gap) !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--mob-text) !important;
+    background: var(--mob-surface-2) !important;
+    border: 1px solid var(--mob-border) !important;
+    border-radius: 10px !important;
+  }
+
+  body.ui-modern:not(.mob-page-dashboard) .mob-dash-welcome,
+  body.ui-modern:not(.mob-page-dashboard) .mob-quick-actions {
+    display: none !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-quick-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    margin: 0 0 10px !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-quick-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    color: var(--mob-text) !important;
+    background: var(--mob-surface-2) !important;
+    border: 1px solid var(--mob-border) !important;
+    border-radius: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-quick-btn:nth-child(4),
+  body.ui-modern.mob-page-dashboard .mob-quick-btn:nth-child(5) {
+    grid-column: span 1 !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .dashboard > h2 {
+    display: none !important;
+  }
+
   body.ui-modern.mob-page-dashboard .dashboard > div[style*="fbbf24"] {
     display: none !important;
   }
 
+  body.ui-modern.mob-page-dashboard .metrics {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--mob-gap) !important;
+    margin-bottom: var(--mob-gap) !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .admin-kpi--hidden,
+  body.ui-modern.mob-page-dashboard .metrics .loterias-card,
+  body.ui-modern.mob-page-dashboard .metrics > .card:not(.metric-card) {
+    display: none !important;
+  }
+
   body.ui-modern.mob-page-dashboard .metrics .card.metric-card {
+    display: none !important;
     min-height: 0 !important;
     padding: 10px 8px !important;
     background: var(--mob-surface-2) !important;
     border: 1px solid var(--mob-border) !important;
     border-radius: 10px !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card {
+    display: block !important;
+    grid-column: 1 / -1 !important;
+    padding: 10px !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card h3 {
+    font-size: 11px !important;
+    margin: 0 0 6px !important;
+    color: #fde68a !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card .metric {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card p,
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card a[style*="Abrir módulo"] {
     display: none !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card > div > div {
+    padding: 6px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .banco-kpi-card > div > div > div:first-child {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#adm-kpi-vd-main),
+  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#adm-kpi-ph-main),
+  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#adm-kpi-vc-main),
+  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#admin-lineas-gan) {
+    display: block !important;
   }
 
   body.ui-modern.mob-page-dashboard .metrics .card.metric-card h3 {
     font-size: 9px !important;
     margin: 0 0 4px !important;
     color: var(--mob-muted) !important;
-    line-height: 1.2 !important;
   }
 
   body.ui-modern.mob-page-dashboard .metrics .card.metric-card .metric,
@@ -424,39 +573,14 @@
     font-size: 13px !important;
     font-weight: 900 !important;
     color: var(--mob-text) !important;
-    line-height: 1.2 !important;
   }
 
   body.ui-modern.mob-page-dashboard .metrics .card.metric-card p {
     display: none !important;
   }
 
-  /* Dashboard — show only Venta día, Ciclo/Ganancia, Premios pendientes */
-  body.ui-modern.mob-page-dashboard .metrics .card.metric-card,
-  body.ui-modern.mob-page-dashboard .metrics > .card {
-    display: none !important;
-  }
-
-  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#adm-kpi-vd-main),
-  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#adm-kpi-vc-main),
-  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:has(#adm-kpi-ph-main) {
-    display: block !important;
-  }
-
   body.ui-modern.mob-page-dashboard .panel {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: var(--mob-gap) !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-  }
-
-  body.ui-modern.mob-page-dashboard .panel .admin-btn {
-    min-height: 48px !important;
-    font-size: 12px !important;
-    padding: 10px 8px !important;
-    border-radius: 10px !important;
+    display: none !important;
   }
 
   /* Ranking in dashboard flow */
@@ -883,13 +1007,46 @@
     margin-bottom: var(--mob-gap) !important;
   }
 
-  /* ─── BANCO / RESUMEN ─── */
+  /* ─── BANCO / RESUMEN / ADMIN PAGES ─── */
+  body.ui-modern.mob-page-banco .card,
   body.ui-modern.mob-page-resumen .card,
   body.ui-modern.mob-page-app .card {
     padding: var(--mob-pad) !important;
+    background: var(--mob-surface) !important;
+    color: var(--mob-text) !important;
   }
 
-  /* ─── TABLES — horizontal scroll + sticky header ─── */
+  body.ui-modern.mob-page-banco input,
+  body.ui-modern.mob-page-banco select,
+  body.ui-modern.mob-page-banco button,
+  body.ui-modern.mob-page-resumen input,
+  body.ui-modern.mob-page-resumen select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body.ui-modern.mob-shell-active:not(.mob-page-dashboard) .mob-dash-strip-host,
+  body.ui-modern.mob-shell-active:not(.mob-page-dashboard) .mob-dash-ranking-host {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Inline light backgrounds → dark on mobile */
+  body.ui-modern.mob-shell-active [style*="background:#fff"],
+  body.ui-modern.mob-shell-active [style*="background: white"],
+  body.ui-modern.mob-shell-active [style*="background:#f8fafc"],
+  body.ui-modern.mob-shell-active [style*="background:#eef2ff"] {
+    background: var(--mob-surface-2) !important;
+    color: var(--mob-text) !important;
+  }
+
+  body.ui-modern.mob-shell-active [style*="color:#002D62"],
+  body.ui-modern.mob-shell-active [style*="color:#0f172a"] {
+    color: var(--mob-text) !important;
+  }
+
+  /* Toast */
   body.ui-modern .table-wrap,
   body.ui-modern .table-responsive,
   body.ui-modern .reporte-table-wrap,
@@ -1009,16 +1166,21 @@
 /* Fine-tune common phone widths */
 @media (max-width: 430px) {
   body.ui-modern .brand-badge__text {
-    font-size: 10px !important;
+    font-size: 9px !important;
   }
 
-  body.ui-modern.mob-page-dashboard .metrics {
-    grid-template-columns: 1fr !important;
+  body.ui-modern.mob-page-dashboard .mob-quick-actions {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:nth-child(2),
-  body.ui-modern.mob-page-dashboard .metrics .card.metric-card:nth-child(3) {
-    display: block !important;
+  body.ui-modern .logout-btn__text {
+    display: none !important;
+  }
+
+  body.ui-modern .logout-btn {
+    width: 34px !important;
+    padding: 0 !important;
+    justify-content: center !important;
   }
 }
 

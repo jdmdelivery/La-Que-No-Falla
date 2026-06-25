@@ -270,3 +270,26 @@ body.ui-modern .metas-panel--premium .meta-card__pct {
   color: var(--card-accent, #00b4ff) !important;
   font-weight: 800 !important;
 }
+
+@media (max-width: 768px) {
+  body.ui-modern:not(.mob-page-dashboard) {
+    --metas-panel-h: 0px !important;
+  }
+
+  body.ui-modern:not(.mob-page-dashboard) #metasPanel,
+  body.ui-modern:not(.mob-page-dashboard) .metas-panel--premium {
+    display: none !important;
+    position: absolute !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-dash-ranking-host #metasPanel {
+    display: block !important;
+    position: relative !important;
+    top: auto !important;
+    min-height: 0 !important;
+  }
+}

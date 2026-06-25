@@ -16,12 +16,8 @@
     if (p.indexOf("/admin/resumen_loteria") === 0 || p.indexOf("/resumen_loteria") === 0) return "resumen";
     if (p.indexOf("/admin/banco") === 0) return "banco";
     if (p === "/admin" || p.indexOf("/admin/limites") === 0) return "dashboard";
-    if (p.indexOf("/admin") === 0) return "dashboard";
+    if (p.indexOf("/admin") === 0) return "app";
     return "app";
-  }
-
-  function rankingPages(page) {
-    return page === "dashboard";
   }
 
   function applyShellClasses(target, page) {
@@ -32,8 +28,13 @@
       target.classList.add("page-resultados");
     }
     if (target === d.body) {
-      target.classList.toggle("shell-with-ranking", rankingPages(page));
-      target.classList.toggle("shell-no-ranking", !rankingPages(page));
+      target.classList.toggle("shell-with-ranking", page === "dashboard");
+      target.classList.toggle("shell-no-ranking", page !== "dashboard");
+      try {
+        if (w.matchMedia("(max-width: 768px)").matches) {
+          target.classList.add("mob-shell-active");
+        }
+      } catch (_e) {}
     }
   }
 
@@ -68,7 +69,6 @@
     }
   };
 
-  /* Teclado móvil: inputs visibles al enfocar */
   function mobileInputScroll() {
     if (!w.matchMedia("(max-width: 900px)").matches) return;
     d.addEventListener(
@@ -95,7 +95,4 @@
   } else {
     mobileInputScroll();
   }
-})(
-  window,
-  document
-);
+})(window, document);

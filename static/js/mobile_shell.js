@@ -1,6 +1,6 @@
 /**
- * Mobile shell — dedicated layout controller (NOT desktop reuse).
- * Manages page classes, drawer, widget visibility, dashboard relocation.
+ * Mobile shell — layout controller for iPhone / Android (≤768px).
+ * Page isolation, drawer, widget relocation, no global chrome bleed.
  */
 (function (w, d) {
   var MQ = "(max-width: 768px)";
@@ -20,30 +20,19 @@
     if (p.indexOf("/admin/resumen_loteria") === 0 || p.indexOf("/resumen_loteria") === 0) return "resumen";
     if (p.indexOf("/admin/banco") === 0) return "banco";
     if (p === "/admin" || p.indexOf("/admin/limites") === 0) return "dashboard";
-    if (p.indexOf("/admin") === 0) return "dashboard";
+    if (p.indexOf("/admin") === 0) return "app";
     return "app";
   }
 
   var MOB_PAGES = [
-    "login",
-    "crear-usuario",
-    "venta",
-    "ganadores",
-    "reporte",
-    "historial-pagos",
-    "resumen",
-    "banco",
-    "dashboard",
-    "app",
+    "login", "crear-usuario", "venta", "ganadores", "reporte",
+    "historial-pagos", "resumen", "banco", "dashboard", "app",
   ];
 
   function clearPageClasses(el) {
     if (!el) return;
     MOB_PAGES.forEach(function (cls) {
-      el.classList.remove("page-" + cls);
-      el.classList.remove("mob-page-" + cls);
-      el.classList.remove("shell-with-ranking");
-      el.classList.remove("shell-no-ranking");
+      el.classList.remove("page-" + cls, "mob-page-" + cls, "shell-with-ranking", "shell-no-ranking", "mob-shell-active");
     });
     el.classList.remove("page-resultados");
   }
@@ -59,6 +48,10 @@
 
     root.classList.add("page-" + page, "mob-page-" + page);
     body.classList.add("page-" + page, "mob-page-" + page);
+    if (isMobile()) {
+      root.classList.add("mob-shell-active");
+      body.classList.add("mob-shell-active");
+    }
     root.setAttribute("data-ui-page", page);
     body.setAttribute("data-ui-page", page);
 
@@ -67,57 +60,27 @@
       body.classList.add("page-resultados");
     }
 
-    if (page === "dashboard") {
-      body.classList.add("shell-with-ranking");
-    } else {
-      body.classList.add("shell-no-ranking");
-    }
-
+    body.classList.toggle("shell-with-ranking", page === "dashboard");
+    body.classList.toggle("shell-no-ranking", page !== "dashboard");
     return page;
   }
 
   function removeFloatingVenta() {
     d.querySelectorAll("a.venta-btn").forEach(function (el) {
-      el.parentNode && el.parentNode.removeChild(el);
+      if (el.parentNode) el.parentNode.removeChild(el);
     });
-  }
-
-  function ensureHost(parent, id, className, position) {
-    if (!parent) return null;
-    var host = d.getElementById(id);
-    if (!host) {
-      host = d.createElement("div");
-      host.id = id;
-      host.className = "mob-page-host " + className;
-      if (position === "prepend") {
-        parent.insertBefore(host, parent.firstChild);
-      } else if (position === "after-metrics") {
-        var metrics = parent.querySelector(".metrics");
-        if (metrics && metrics.nextSibling) {
-          parent.insertBefore(host, metrics.nextSibling);
-        } else if (metrics) {
-          metrics.parentNode.insertBefore(host, metrics.nextSibling);
-        } else {
-          parent.appendChild(host);
-        }
-      } else {
-        parent.appendChild(host);
-      }
-    }
-    return host;
-  }
-
-  function moveIntoHost(el, host) {
-    if (!el || !host || host.contains(el)) return;
-    host.appendChild(el);
-    el.removeAttribute("hidden");
-    el.setAttribute("aria-hidden", "false");
   }
 
   function hideEl(el) {
     if (!el) return;
     el.setAttribute("hidden", "hidden");
     el.setAttribute("aria-hidden", "true");
+  }
+
+  function showEl(el) {
+    if (!el) return;
+    el.removeAttribute("hidden");
+    el.setAttribute("aria-hidden", "false");
   }
 
   function relocateWidgets(page) {
@@ -128,25 +91,30 @@
     var panel = d.getElementById("metasPanel");
     var topbar = d.getElementById("appTopbar") || d.querySelector(".topbar");
 
-    if (stats && topbar && topbar.contains(stats) && page !== "dashboard") {
-      hideEl(stats);
+    if (stats && topbar && topbar.contains(stats)) {
+      if (page === "dashboard") {
+        var strip = d.getElementById("mobDashStripHost");
+        if (strip) strip.appendChild(stats);
+      } else {
+        hideEl(stats);
+      }
     }
 
     if (page === "dashboard") {
       var dash = d.querySelector(".dashboard");
-      if (dash) {
-        var stripHost = ensureHost(dash, "mobDashStripHost", "mob-dash-strip-host", "prepend");
-        var rankHost = ensureHost(dash, "mobDashRankingHost", "mob-dash-ranking-host", "after-metrics");
-        if (stats) moveIntoHost(stats, stripHost);
-        if (panel) moveIntoHost(panel, rankHost);
+      var rankHost = d.getElementById("mobDashRankingHost");
+      if (panel && rankHost && !rankHost.contains(panel)) {
+        rankHost.appendChild(panel);
+        showEl(panel);
+      } else if (panel) {
+        showEl(panel);
       }
-    } else {
+    } else if (panel) {
       hideEl(panel);
-      if (stats && page !== "dashboard") hideEl(stats);
+      panel.style.cssText = "display:none!important;position:absolute!important;height:0!important;overflow:hidden!important;";
     }
 
-    if (page === "venta") {
-      hideEl(panel);
+    if (page !== "dashboard" && stats) {
       hideEl(stats);
     }
   }
@@ -159,13 +127,16 @@
     var sb = d.getElementById("sidebar");
     var bd = d.getElementById("sb-backdrop");
     if (sb) sb.classList.remove("open");
-    if (bd) bd.classList.remove("open");
+    if (bd) {
+      bd.classList.remove("open");
+      bd.setAttribute("aria-hidden", "true");
+    }
     d.body.classList.remove("sidebar-open");
   }
 
   function scrollTop() {
     try {
-      w.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      w.scrollTo({ top: 0, left: 0, behavior: "instant" in w ? "instant" : "auto" });
     } catch (_e) {
       w.scrollTo(0, 0);
     }
@@ -173,7 +144,8 @@
 
   function setupDrawerNav() {
     var sb = d.getElementById("sidebar");
-    if (!sb) return;
+    if (!sb || sb.dataset.mobNavBound === "1") return;
+    sb.dataset.mobNavBound = "1";
 
     sb.addEventListener("click", function (ev) {
       if (!isMobile()) return;
@@ -186,27 +158,52 @@
     });
   }
 
+  function patchToggleMenu() {
+    var origClose = w.closeSideMenu;
+    w.closeSideMenu = function () {
+      if (typeof origClose === "function") origClose();
+      else {
+        var sb = d.getElementById("sidebar");
+        var bd = d.getElementById("sb-backdrop");
+        if (sb) sb.classList.remove("open");
+        if (bd) bd.classList.remove("open");
+        d.body.classList.remove("sidebar-open");
+      }
+    };
+  }
+
   function applyMobileLayout() {
-    if (!isMobile()) return;
+    if (!isMobile()) {
+      d.body.classList.remove("mob-shell-active");
+      return;
+    }
     var page = applyPageClasses();
     removeFloatingVenta();
     relocateWidgets(page);
-    closeDrawer();
-  }
-
-  function onResize() {
-    if (isMobile()) {
-      applyMobileLayout();
-    }
+    setupDrawerNav();
   }
 
   function init() {
+    patchToggleMenu();
     applyMobileLayout();
-    setupDrawerNav();
+    closeDrawer();
 
-    w.addEventListener("resize", onResize);
+    w.addEventListener("resize", function () {
+      applyMobileLayout();
+    });
 
-    /* Re-run after print_ticket_app injects topbar stats */
+    w.addEventListener("pageshow", function () {
+      applyMobileLayout();
+      scrollTop();
+    });
+
+    var obs = new MutationObserver(function () {
+      if (!isMobile()) return;
+      removeFloatingVenta();
+      relocateWidgets(detectPage(w.location.pathname));
+    });
+    obs.observe(d.body, { childList: true, subtree: true });
+
     var tries = 0;
     var poll = setInterval(function () {
       if (!isMobile()) {
@@ -216,8 +213,8 @@
       tries += 1;
       relocateWidgets(detectPage(w.location.pathname));
       removeFloatingVenta();
-      if (tries > 20) clearInterval(poll);
-    }, 250);
+      if (tries > 24) clearInterval(poll);
+    }, 200);
   }
 
   w.__applyMobilePageShell = applyPageClasses;

@@ -13056,7 +13056,8 @@ text-align:right;
 .meta-card__pct{font-size:10px;min-width:46px;}
 }
 
-/* ===== BOTON VENTA ===== */
+/* ===== BOTON VENTA (solo desktop; móvil usa menú) ===== */
+@media (min-width: 769px) {
 .venta-btn{
 position:fixed;
 bottom:90px;
@@ -13069,6 +13070,7 @@ font-weight:900;
 text-decoration:none;
 box-shadow:0 20px 60px rgba(0,0,0,.4);
 z-index:9999;
+}
 }
 
 .success{color:#34C759;font-weight:bold}
@@ -27615,6 +27617,14 @@ transform:translateY(-3px);
 
 <div class="dashboard">
 <div class="mob-dash-strip-host" id="mobDashStripHost"></div>
+<p class="mob-dash-welcome">👤 Bienvenido, {{ usuario_bienvenida }}</p>
+<nav class="mob-quick-actions" aria-label="Acciones rápidas">
+<a href="/venta" class="mob-quick-btn">💰 Venta</a>
+<a href="/ganadores" class="mob-quick-btn">🏆 Ganadores</a>
+<a href="/admin/pagos" class="mob-quick-btn">💵 Pagos</a>
+<a href="/admin/limites" class="mob-quick-btn">🎛️ Límites</a>
+<a href="/admin/banco" class="mob-quick-btn">🏦 Banco</a>
+</nav>
 
 <h2 style="text-align:center;margin-bottom:12px">
 📊 Panel Administrativo
