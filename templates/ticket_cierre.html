@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cierre — ticket</title>
+<style>
+  @page { size: 58mm auto; margin: 2mm; }
+  body.ticket-body {
+    width: 58mm; max-width: 58mm; margin: 0 auto;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: monospace; font-size: 11px; background: #fff; color: #000;
+  }
+  .ticket { width: 58mm; max-width: 58mm; padding: 4px; text-align: center; }
+  .ticket-header, .ticket-total, .ticket-footer { font-weight: 800; margin: 4px 0; }
+  .ticket-sep { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+  @media print {
+    body.ticket-body { width: 58mm; min-height: auto; display: block; }
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    text-align: left;
+    font-size: 20px;
+    font-weight: 700;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  .row span:last-child { text-align: right; font-weight: 800; }
+</style>
+<script src="/static/print_ticket_app.js"></script>
+</head>
+<body class="ticket-body" onload="imprimir()">
+<div class="ticket ticket-thermal">
+  <hr class="ticket-sep">
+  <div class="ticket-header">LA QUE NUNCA FALLA</div>
+  <hr class="ticket-sep">
+  <div class="row"><span>Fecha:</span><span>{{ cierre.fecha }}</span></div>
+  <div class="row"><span>Hora:</span><span>{{ cierre.hora or "—" }}</span></div>
+  <div class="row"><span>Cajero:</span><span>{{ cierre.cajero }}</span></div>
+  <hr class="ticket-sep">
+  <div class="row"><span>Ventas:</span><span>RD$ {{ "%.2f"|format(cierre.ventas) }}</span></div>
+  <div class="row"><span>Premios:</span><span>RD$ {{ "%.2f"|format(cierre.premios) }}</span></div>
+  <div class="row"><span>Entregado:</span><span>RD$ {{ "%.2f"|format(cierre.entregado) }}</span></div>
+  <hr class="ticket-sep">
+  <div class="ticket-total">BALANCE RD$ {{ "%.2f"|format(cierre.balance) }}</div>
+  <div class="ticket-footer">CIERRE DE CAJA</div>
+</div>
+</body>
+</html>

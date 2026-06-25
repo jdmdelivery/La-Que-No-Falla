@@ -1,0 +1,1045 @@
+    <style>
+    .numero{ padding:6px 10px; border-radius:50%; font-weight:bold; margin:3px; display:inline-block; min-width:40px; text-align:center; white-space:nowrap; }
+    .numero.verde, .numero-verde{ background:#22c55e; color:white; }
+    .numero.gris, .numero-gris{ background:#d1d5db; color:#333; }
+    .tabla-resultados{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .tabla-resultados table{ min-width:420px; width:100%; border-collapse:collapse; }
+    .tabla-resultados.tabla-ganadores-wrap table{ min-width:640px; }
+    .tabla-ganadores td,.tabla-ganadores th{ padding:10px 8px; text-align:left; vertical-align:middle; border-bottom:1px solid #e2e8f0; }
+    .tabla-ganadores thead th{ background:#f1f5f9; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#475569; font-weight:700; }
+    .tabla-ganadores .gan-jugo{ font-weight:600; color:#0f172a; }
+    .tabla-ganadores .gan-oficial-si{ color:#15803d; font-weight:800; font-size:15px; letter-spacing:.02em; }
+    .tabla-ganadores .gan-oficial-no{ color:#b91c1c; font-weight:700; }
+    .tabla-ganadores .gan-ico{ margin-left:6px; font-size:14px; }
+    .tabla-ganadores .gan-motivo{ font-size:12px; color:#475569; max-width:160px; line-height:1.35; }
+    .tabla-ganadores .gan-draw-mini{ font-size:11px; color:#64748b; margin-top:2px; }
+    
+    .gnr-cards-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:4px}
+    @media (min-width:720px){.gnr-cards-grid{grid-template-columns:repeat(2,1fr)}}
+    @media (min-width:1100px){.gnr-cards-grid{grid-template-columns:repeat(3,1fr)}}
+    .gnr-premio-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(15,23,42,.06);box-sizing:border-box;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
+    .gnr-premio-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .gnr-premio-ticket{font-size:17px;font-weight:800;color:#0f172a}
+    .gnr-badge-pendiente{display:inline-block;padding:4px 10px;border-radius:999px;background:#ffedd5;color:#9a3412;font-weight:800;font-size:11px;letter-spacing:.04em}
+    .gnr-premio-detail-grid{display:grid;grid-template-columns:1fr;gap:8px 12px;margin-bottom:12px;font-size:13px;line-height:1.45}
+    @media (min-width:480px){.gnr-premio-detail-grid{grid-template-columns:repeat(2,1fr)}}
+    @media (min-width:900px){.gnr-premio-detail-grid{grid-template-columns:repeat(3,1fr)}}
+    .gnr-lbl{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+    .gnr-val{display:block;color:#0f172a;font-weight:600;word-break:break-word}
+    .gnr-val-strong{font-size:15px;font-weight:800}
+    .gnr-val.gnr-ok{color:#15803d}
+    .gnr-monto-pagar{margin:0 0 12px 0;padding:10px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:15px;color:#166534}
+    .gnr-monto-pagar b{font-size:17px}
+    .gnr-premio-actions{display:flex;flex-direction:column;gap:8px}
+    .gnr-btn-imprimir{display:block;text-align:center;padding:10px 14px;border-radius:8px;background:#002D62;color:#fff;text-decoration:none;font-weight:800;font-size:14px;border:1px solid #001a3d;box-sizing:border-box}
+    .gnr-card-pagar-todos{background:#f8fafc;border-style:dashed}
+
+    @media (max-width:640px){
+    .numero{ min-width:32px; font-size:13px; padding:5px 8px; }
+    .gnr-section{width:100%;margin:8px auto;padding:0 8px;box-sizing:border-box}
+    .tabla-resultados.tabla-ganadores-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
+    .tabla-resultados.tabla-ganadores-wrap table{min-width:0;width:100%;font-size:12px}
+    .gnr-premio-card{padding:12px}
+    .gnr-btn-imprimir,.gnr-btn-pagar{min-height:48px;font-size:15px}
+    }
+    .gnr-section{width:min(95vw,1400px);margin:14px auto}
+    .gnr-section-results{margin-top:8px !important}
+    .tabla-resultados{width:95%;margin:0 auto}
+    .tabla-resultados-main{display:table;width:100%}
+    </style>
+    <audio id="alertaResultado" preload="auto">
+        <source src="/static/sounds/resultado.mp3" type="audio/mpeg">
+    </audio>
+    <div class="card gnr-section gnr-section-results" style="margin-top:70px">
+        <h2>🎰 Resultados de Hoy</h2>
+        <div id="gnr-pagar-toast" style="display:none;padding:10px 12px;border-radius:8px;margin:0 0 14px 0;font-weight:600;text-align:center"></div>
+        {% for cat, msg in get_flashed_messages(with_categories=true) %}
+        <div class="gnr-flash-banner" style="padding:10px 12px;border-radius:8px;margin:0 0 14px 0;font-weight:600;text-align:center;border:1px solid {% if cat == 'danger' %}#fecaca{% elif cat == 'success' %}#bbf7d0{% elif cat == 'warning' %}#fde68a{% elif cat == 'info' %}#7dd3fc{% else %}#facc15{% endif %};background:{% if cat == 'danger' %}#fee2e2{% elif cat == 'success' %}#dcfce7{% elif cat == 'warning' %}#fef9c3{% elif cat == 'info' %}#e0f2fe{% else %}#fef9c3{% endif %};color:{% if cat == 'danger' %}#991b1b{% elif cat == 'success' %}#166534{% elif cat == 'warning' %}#854d0e{% elif cat == 'info' %}#075985{% else %}#854d0e{% endif %}">{{ msg }}</div>
+        {% endfor %}
+        {% if resultados_grilla_tiene_filas|default(resultados_hoy) %}
+        <p style="color:#666;margin-bottom:10px">
+            Calendario RD: <b>{{ resultados_fecha }}</b>. Verde = sorteo con fecha de hoy en base de datos; gris = último resultado publicado (día anterior) hasta que Conectate publique el de hoy.
+        </p>
+        {% if resultados_pendientes_hoy %}
+        <p style="padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #93c5fd;color:#1e40af;font-weight:600;font-size:14px;line-height:1.5;margin:0 0 14px 0">
+          {% if resultados_ultima_fecha_display %}
+          <b>Últimos resultados cargados: {{ resultados_ultima_fecha_display }}</b> — todavía no hay sorteos con fecha oficial de <b>hoy</b> ({{ hoy }}) para todos los horarios. Los números en gris son del último día publicado; al actualizar desde Conectate pasarán a verde cuando la fecha en BD sea hoy.
+          {% else %}
+          Todavía no hay resultados publicados en el rango reciente. Use «Actualizar resultados ahora» para traer datos de Conectate.
+          {% endif %}
+        </p>
+        {% endif %}
+        <div class="tabla-resultados">
+        <table width="100%" class="tabla-resultados-main">
+            <thead>
+            <tr>
+                <th>Lotería</th>
+                <th>Resultados</th>
+                <th>Fecha</th>
+                <th>Hora cierre</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for r in resultados_hoy %}
+            <tr>
+                <td class="res-lot-col" data-lottery="{{ r.lottery_display or r.lottery }}">{{ r.lottery_display }}</td>
+                <td id="{{ r.lottery }}_{{ r.draw or '' }}" data-num="{{ (r.primero or '') }}-{{ (r.segundo or '') }}-{{ (r.tercero or '') }}">
+                {% if r.color == "green" %}
+                <span class="numero numero-verde">{{ r.primero or '--' }}</span>
+                <span class="numero numero-verde">{{ r.segundo or '--' }}</span>
+                <span class="numero numero-verde">{{ r.tercero or '--' }}</span>
+                {% else %}
+                <span class="numero numero-gris">{{ r.primero or '--' }}</span>
+                <span class="numero numero-gris">{{ r.segundo or '--' }}</span>
+                <span class="numero numero-gris">{{ r.tercero or '--' }}</span>
+                {% endif %}
+                </td>
+                <td id="fecha_{{ r.lottery }}_{{ r.draw or '' }}"><span class="res-fecha-chip">{{ r.fecha_display or '—' }}</span></td>
+                <td id="cierre_{{ r.lottery }}_{{ r.draw or '' }}"><span class="res-cierre-chip">{{ r.hora_cierre or r.draw_display or r.draw or '—' }}</span></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+            <p style="padding:12px 14px;border-radius:10px;background:#fef9c3;border:1px solid #facc15;color:#854d0e;font-weight:700">
+              No se pudo armar la grilla de resultados. Intente «Actualizar resultados ahora» o recargue la página.
+            </p>
+            <p style="margin-top:10px;color:#666">Puedes forzar una actualización:</p>
+            <a class="gnr-update-link" href="/actualizar_resultados" style="display:inline-block;margin-top:8px;padding:10px 16px;border-radius:8px;background:#002D62;color:white;text-decoration:none;font-weight:bold">🔄 Actualizar resultados ahora</a>
+        {% endif %}
+        {% if resultados_grilla_tiene_filas|default(resultados_hoy) %}
+        <p style="margin-top:12px">
+            <a class="gnr-update-link" href="/actualizar_resultados" style="color:#002D62;text-decoration:none;font-size:14px">🔄 Actualizar resultados ahora</a>
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="card gnr-section gnr-section-summary">
+        <h2>🏆 Ganadores Hoy</h2>
+        {% if aviso_pagos_sorteos_anteriores %}
+        <div style="margin:0 0 14px 0;padding:12px 14px;border-radius:10px;background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;font-size:14px;line-height:1.5;font-weight:600">{{ aviso_pagos_sorteos_anteriores }}</div>
+        {% endif %}
+        <p>Total ganadores (líneas): <b>{{ total_ganadores }}</b> · Tickets con premio: <b>{{ total_ganadores_tickets|default(0) }}</b></p>
+        <p>Total dinero a pagar: <b>RD$ {{ "%.2f"|format(total_pagar) }}</b></p>
+        <p style="color:#666;font-size:14px">Apostado en líneas ganadoras: RD$ {{ "%.2f"|format(total_apostado_ganadores) }} · Riesgo (premios): RD$ {{ "%.2f"|format(total_riesgo) }}</p>
+        {% if ganadores_agrupado and ganadores_agrupado|length > 0 %}
+        <details style="margin-top:10px;color:#444;font-size:14px">
+            <summary style="cursor:pointer;font-weight:600">Resumen por lotería y tipo</summary>
+            <ul style="margin:8px 0 0 18px;line-height:1.5">
+            {% for lot, tipos in ganadores_agrupado.items() %}
+                <li><b>{{ lot }}</b>
+                    <ul>
+                    {% for tipo, filas in tipos.items() %}
+                        <li>{{ tipo }}: {{ filas|length }} jugada(s)</li>
+                    {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+            </ul>
+        </details>
+        {% endif %}
+        {% if vista_admin %}
+        <div style="margin-top:18px;padding:14px;border-radius:12px;background:#f0f9ff;border:1px solid #bae6fd">
+            <h3 style="margin:0 0 12px 0;font-size:16px;color:#0c4a6e">Resumen por cajero</h3>
+            {% if resumen_por_cajero %}
+            {% for row in resumen_por_cajero %}
+            <div style="padding:12px;margin-bottom:10px;background:#fff;border-radius:10px;border:1px solid #e0f2fe">
+                <div style="font-weight:800;color:#0f172a;margin-bottom:6px">{{ row.cajero }}</div>
+                <p style="margin:0;line-height:1.6">Ventas: <b>RD$ {{ "%.2f"|format(row.ventas) }}</b>
+                · Premios ganados: <b>RD$ {{ "%.2f"|format(row.premios_ganados) }}</b>
+                · Pagos en caja (hoy): <b>RD$ {{ "%.2f"|format(row.premios_pagados) }}</b></p>
+                <p style="margin:8px 0 0 0;font-size:17px;font-weight:800;color:{% if row.ganancia >= 0 %}#15803d{% else %}#b91c1c{% endif %}">
+                    Dinero en caja (ventas − pagos en caja hoy): RD$ {{ "%.2f"|format(row.ganancia) }}
+                </p>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="color:#64748b;font-size:14px;margin:0 0 12px 0">No hay ventas registradas hoy por cajero o aún no hay movimiento.</p>
+            {% endif %}
+            <div style="margin-top:14px;padding:14px;border-radius:10px;background:#ecfeff;border:2px solid #06b6d4">
+                <div style="font-weight:900;font-size:15px;color:#155e75;margin-bottom:8px">TOTAL GENERAL (todos los cajeros)</div>
+                <p style="margin:0;line-height:1.6">Ventas: <b>RD$ {{ "%.2f"|format(ventas_del_dia) }}</b>
+                · Premios ganados: <b>RD$ {{ "%.2f"|format(total_premios_ganados) }}</b>
+                · Pagos en caja (hoy): <b>RD$ {{ "%.2f"|format(premios_pagados_del_dia) }}</b></p>
+                <p style="margin:8px 0 0 0;font-size:18px;font-weight:900;color:{% if ganancia_dia >= 0 %}#15803d{% else %}#b91c1c{% endif %}">
+                    Dinero en caja: RD$ {{ ganancia_dia_fmt }}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+        <p style="margin-top:12px;font-size:18px;">
+            💰 <b>Dinero en caja del día:</b>
+            <span style="color:#16a34a;font-weight:bold;">RD$ {{ ganancia_dia_fmt }}</span>
+        </p>
+        <p style="color:#64748b;font-size:13px;margin:6px 0 0 0;line-height:1.4">
+            Ventas del día: <b>RD$ {{ "%.2f"|format(ventas_del_dia) }}</b>
+            · Premios pagados hoy: <b>RD$ {{ "%.2f"|format(premios_pagados_del_dia) }}</b>
+            <br><span style="font-size:12px">(Dinero en caja = ventas − pagos en caja hoy, alineado con «Pagos en caja». Premios devengados y riesgo se muestran abajo.)</span>
+        </p>
+        <div style="margin-top:14px;padding:12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;font-size:14px;line-height:1.55">
+            <div><b>Total premios ganados (hoy)</b> — suma de premios por línea ganadora (venta del día RD):<br>
+            <span style="font-size:17px;font-weight:800;color:#0f172a">RD$ {{ total_premios_ganados_fmt }}</span></div>
+            <div style="margin-top:10px"><b>Riesgo pendiente</b> — premios ganados hoy − pagos hoy:<br>
+            <span style="font-size:17px;font-weight:800;color:{% if riesgo_pendiente > 0 %}#b45309{% elif riesgo_pendiente < 0 %}#2563eb{% else %}#64748b{% endif %}">RD$ {{ riesgo_pendiente_fmt }}</span></div>
+            <div style="margin-top:10px"><b>Ganancia proyectada</b> — ventas − premios ganados hoy:<br>
+            <span style="font-size:17px;font-weight:800;color:{% if ganancia_proyectada >= 0 %}#15803d{% else %}#b91c1c{% endif %}">RD$ {{ ganancia_proyectada_fmt }}</span></div>
+            <p style="margin:10px 0 0 0;font-size:11px;color:#94a3b8">Misma fecha RD que ventas. El riesgo puede ser negativo si hoy pagaste premios de tickets de otros días.</p>
+        </div>
+        <a href="#lista" style="
+            display:inline-block;
+            margin-top:10px;
+            padding:10px 16px;
+            border-radius:999px;
+            background:#002D62;
+            color:white;
+            text-decoration:none;
+            font-weight:bold;
+        ">VER GANADORES</a>
+    </div>
+
+    <div class="card gnr-pendientes-lista gnr-section gnr-section-pending" id="lista" style="margin-top:18px">
+        <div style="margin-bottom:18px">
+            <h2 style="margin:0 0 6px 0;font-size:22px;color:#0f172a;line-height:1.25">🏆 Lista de Premios Pendientes</h2>
+            <p style="margin:0;color:#64748b;font-size:15px">Premios pendientes por pagar</p>
+        </div>
+        <form method="get" action="/ganadores" class="gnr-filtro-fecha" style="margin:0 0 14px 0;padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px">
+            <label style="font-size:13px;font-weight:700;color:#334155;display:flex;flex-direction:column;gap:6px;flex:1 1 180px;min-width:0">
+                Fecha de premios
+                <input type="date" name="fecha_premios" value="{{ fecha_premios or hoy }}" style="padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;width:100%;max-width:100%;box-sizing:border-box">
+            </label>
+            <input type="hidden" name="page" value="1">
+            <input type="hidden" name="limit" value="{{ ganadores_limit|default(100) }}">
+            <button type="submit" style="padding:11px 18px;border-radius:8px;background:#2563eb;color:#fff;border:none;font-weight:800;cursor:pointer;font-size:14px;flex:0 0 auto">
+                Ver pendientes de esta fecha
+            </button>
+        </form>
+        {% if puede_recalcular_ganadores %}
+        <div style="margin:0 0 16px 0;display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;width:100%">
+                <button type="button" id="btnGnrRecalcManual" data-fecha="{{ fecha_premios or hoy }}" style="padding:11px 18px;border-radius:8px;background:#0f172a;color:#fff;border:2px solid #0f172a;font-weight:800;cursor:pointer;font-size:14px">
+                    🔄 Recalcular ganadores
+                </button>
+                {% if vista_admin %}
+                <button type="button" id="btnGnrEliminarTicketFalso" style="padding:11px 18px;border-radius:8px;background:linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#991b1b 100%);color:#fff;border:none;font-weight:800;cursor:pointer;font-size:14px;box-shadow:0 4px 14px rgba(185,28,28,.35);display:inline-flex;align-items:center;gap:8px">
+                    🗑️ Eliminar ticket falso o de bajo
+                </button>
+                {% endif %}
+                <span id="gnrRecalcStatus" style="font-size:12px;color:#64748b;line-height:1.45;flex:1 1 200px">
+                    Fecha activa: <b>{{ fecha_premios or hoy }}</b> · Hoy RD: <b>{{ hoy }}</b>
+                </span>
+            </div>
+        </div>
+        {% if vista_admin %}
+        <div id="modalEliminarTicketFalso" class="gnr-modal-elim-overlay" style="display:none" aria-hidden="true" role="dialog" aria-labelledby="gnrModalElimTitulo">
+            <div class="gnr-modal-elim-card">
+                <header class="gnr-modal-elim-head">
+                    <h3 id="gnrModalElimTitulo" style="margin:0;font-size:18px;color:#fff">🗑️ Eliminar ticket falso o de bajo</h3>
+                    <button type="button" class="gnr-modal-elim-close" id="btnGnrModalElimCerrar" aria-label="Cerrar">&times;</button>
+                </header>
+                <div class="gnr-modal-elim-body">
+                    <p style="margin:0 0 14px 0;font-size:13px;color:#64748b;line-height:1.5">El ticket se ocultará de premios pendientes y reportes. Quedará registrado en el historial de eliminados.</p>
+                    <label class="gnr-modal-elim-label">
+                        Seleccionar ticket
+                        <select id="gnrElimTicketSelect" style="width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;background:#fff">
+                            <option value="">— Elija un ticket —</option>
+                            {% for t in lista_ganadores_por_ticket %}
+                            {% if (t.n_lineas_pendientes|default(0)) > 0 %}
+                            <option value="{{ t.ticket_id }}">Ticket #{{ t.ticket_id }} — RD$ {{ "%.2f"|format(t.total_pendiente|default(0)) }} ({{ t.cajero or '—' }})</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="gnr-modal-elim-label" style="margin-top:14px">
+                        Motivo de eliminación <span style="color:#b91c1c">*</span>
+                        <textarea id="gnrElimMotivo" rows="3" maxlength="500" placeholder="Describa el motivo (obligatorio)" style="width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;resize:vertical;min-height:88px;box-sizing:border-box"></textarea>
+                    </label>
+                    <div id="gnrElimMsg" style="display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:600"></div>
+                </div>
+                <footer class="gnr-modal-elim-foot">
+                    <button type="button" id="btnGnrModalElimCancelar" style="padding:11px 16px;border-radius:8px;background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-weight:700;cursor:pointer">Cancelar</button>
+                    <button type="button" id="btnGnrModalElimConfirmar" style="padding:11px 18px;border-radius:8px;background:linear-gradient(135deg,#b91c1c,#dc2626);color:#fff;border:none;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(220,38,38,.3)">Confirmar eliminación</button>
+                </footer>
+            </div>
+        </div>
+        <style>
+        .gnr-modal-elim-overlay{position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+        .gnr-modal-elim-card{width:100%;max-width:480px;background:#fff;border-radius:16px;box-shadow:0 24px 48px rgba(0,0,0,.18);overflow:hidden;animation:gnrModalIn .22s ease}
+        @keyframes gnrModalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+        .gnr-modal-elim-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:linear-gradient(135deg,#7f1d1d,#b91c1c)}
+        .gnr-modal-elim-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:36px;height:36px;border-radius:8px;cursor:pointer;line-height:1}
+        .gnr-modal-elim-body{padding:18px}
+        .gnr-modal-elim-label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#334155}
+        .gnr-modal-elim-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding:14px 18px 18px;border-top:1px solid #f1f5f9;background:#fafafa}
+        @media(max-width:480px){.gnr-modal-elim-foot button{flex:1 1 100%}}
+        </style>
+        {% endif %}
+        {% else %}
+        <p style="font-size:12px;color:#64748b;margin:0 0 16px 0;line-height:1.45">
+            Fecha activa: <b>{{ fecha_premios or hoy }}</b> · Hoy RD: <b>{{ hoy }}</b>
+        </p>
+        {% endif %}
+        <p style="margin:0 0 14px 0;font-size:14px;color:#334155">
+            <b>{{ total_ganadores|default(0) }}</b> premio(s) pendiente(s) · Total a pagar: <b style="color:#15803d">RD$ {{ "%.2f"|format(total_pagar) }}</b>
+        </p>
+        {% if ganadores_lista_truncada %}
+        <p style="font-size:13px;color:#b45309;margin:0 0 12px 0;font-weight:600">
+            Página {{ ganadores_page|default(1) }} — mostrando {{ ganadores_lista_limite }} por página.
+        </p>
+        {% endif %}
+        <div id="gnr-premios-root" data-ganadores-recibidos="{{ lista_ganadores|length|default(0) }}" data-tickets-recibidos="{{ lista_ganadores_por_ticket|length|default(0) }}" style="display:none" aria-hidden="true"></div>
+        {% if lista_ganadores_por_ticket and lista_ganadores_por_ticket|length > 0 %}
+        <div class="gnr-cards-grid" id="gnr-cards-grid">
+            {% for t in lista_ganadores_por_ticket %}
+            {% set n_pend = t.n_lineas_pendientes|default(0) %}
+            {% for ln in t.lineas %}
+            {% if not ln.pagado and (ln.estado_label or '')|upper != 'PAGADO' and (ln.estado or '')|lower == 'pendiente' %}
+            <article class="gnr-premio-card" data-ticket-id="{{ t.ticket_id }}" data-premio-id="{{ ln.premio_id|default('') }}">
+                <header class="gnr-premio-card-head">
+                    <div class="gnr-premio-ticket">Ticket #{{ t.ticket_id }}</div>
+                    <span class="gnr-badge-pendiente">PENDIENTE</span>
+                </header>
+                <div class="gnr-premio-detail-grid">
+                    <div><span class="gnr-lbl">Cajero</span><span class="gnr-val">{{ t.cajero or ln.cajero or '—' }}</span></div>
+                    <div><span class="gnr-lbl">Lotería</span><span class="gnr-val">{{ ln.lottery or '—' }}</span></div>
+                    <div><span class="gnr-lbl">Sorteo</span><span class="gnr-val">{{ ln.draw or '—' }}</span></div>
+                    <div><span class="gnr-lbl">Fecha</span><span class="gnr-val">{% set _fc = (ln.resultado_fecha_iso or ln.fecha_sorteo_linea or '') %}{% if _fc and _fc|length >= 10 %}{{ _fc[5:7] }}-{{ _fc[8:10] }}{% else %}—{% endif %}</span></div>
+                    <div><span class="gnr-lbl">Jugó</span><span class="gnr-val gnr-val-strong">{{ ln.numero_jugado_display }}</span></div>
+                    <div><span class="gnr-lbl">Oficial</span><span class="gnr-val gnr-val-strong {% if ln.acierto_ok %}gnr-ok{% endif %}">{{ ln.numero_oficial_display }}</span></div>
+                    <div><span class="gnr-lbl">Premio</span><span class="gnr-val">{{ ln.acierto_detalle or '—' }}</span></div>
+                    <div><span class="gnr-lbl">Tipo</span><span class="gnr-val">{{ ln.play or '—' }}</span></div>
+                </div>
+                <div class="gnr-monto-pagar">Monto a pagar: <b>RD$ {{ "%.2f"|format(ln.premio) }}</b></div>
+                <div class="gnr-premio-actions">
+                    {% if ln.premio_id %}
+                    <div class="form-pagar-premio-linea" role="group" data-premio-id="{{ ln.premio_id }}" data-ticket-id="{{ t.ticket_id }}" data-line-id="{{ ln.line_id|default('') }}" data-habilitar-ms="{{ ln.pago_habilitar_unix_ms_linea|default(0) }}" data-tiene-ganador-premio="{{ '1' if (ln.tiene_ganador_premio_linea|default(false)) else '0' }}" data-habilitar-pago="{{ '1' if (ln.habilitar_pago_linea|default(false)) else '0' }}" data-server-now-ms="__GNR_SERVER_NOW_MS__">
+                    <button type="button" class="btn btn-success btn-pagar-premio-linea" disabled style="padding:10px 14px;border-radius:8px;background:#22c55e;color:#fff;border:none;font-weight:800;cursor:not-allowed;opacity:0.5;width:100%;font-size:14px">{% if n_pend == 1 %}💰 Pagar premio{% else %}💰 Pagar este premio{% endif %}</button>
+                    </div>
+                    <div class="gan-pago-cooldown-linea" data-for-premio="{{ ln.premio_id }}" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;margin-top:4px"></div>
+                    {% endif %}
+                    <a href="/imprimir_pago/{{ t.ticket_id }}" target="_blank" rel="noopener noreferrer" class="gnr-btn-imprimir">🖨️ Imprimir ticket</a>
+                </div>
+            </article>
+            {% endif %}
+            {% endfor %}
+            {% if n_pend >= 2 %}
+            <article class="gnr-premio-card gnr-card-pagar-todos" data-ticket-id="{{ t.ticket_id }}">
+                <p style="margin:0 0 10px 0;font-size:13px;color:#64748b;font-weight:600">Ticket #{{ t.ticket_id }} — {{ n_pend }} premios pendientes</p>
+                <div class="form-pagar-premio-ganador" style="display:block;margin:0" role="group" data-ticket-id="{{ t.ticket_id }}" data-habilitar-ms="{{ t.pago_habilitar_unix_ms|default(0) }}" data-tiene-ganador-premio="{{ '1' if (t.tiene_ganador_premio|default(false)) else '0' }}" data-habilitar-pago="{{ '1' if (t.habilitar_pago|default(false)) else '0' }}" data-server-now-ms="__GNR_SERVER_NOW_MS__">
+                <button type="button" class="btn btn-success btn-pagar-premio-ganador" disabled style="padding:10px 14px;border-radius:8px;background:#16a34a;color:#fff;border:none;font-weight:800;cursor:not-allowed;opacity:0.5;width:100%;font-size:14px">💰 Pagar todos los premios del ticket</button>
+                </div>
+                <div class="gan-pago-cooldown" data-for-ticket="{{ t.ticket_id }}" style="font-size:11px;color:#64748b;font-weight:600;text-align:center;margin-top:4px"></div>
+            </article>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% if ganadores_has_more %}
+        <form method="get" action="/ganadores" style="margin:20px 0 0 0;text-align:center">
+            <input type="hidden" name="fecha_premios" value="{{ fecha_premios or hoy }}">
+            <input type="hidden" name="page" value="{{ ganadores_next_page|default(2) }}">
+            <input type="hidden" name="limit" value="{{ ganadores_limit|default(100) }}">
+            <button type="submit" style="padding:12px 24px;border-radius:8px;background:#2563eb;color:#fff;border:none;font-weight:800;cursor:pointer;font-size:15px;width:100%;max-width:320px">
+                Cargar más
+            </button>
+        </form>
+        {% endif %}
+        {% else %}
+        {% if (total_ganadores|default(0))|int > 0 or (total_pagar|default(0))|float > 0.01 %}
+        <div style="text-align:center;padding:22px;font-size:15px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;margin-bottom:16px;font-weight:600">
+            Hay premios en el resumen pero no en la lista. Confirme la fecha o recalcule ganadores.
+        </div>
+        {% endif %}
+        <div style="text-align:center;padding:36px 20px;font-size:16px;color:#64748b;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0">
+            No hay premios <b>pendientes</b> para el <b>{{ fecha_premios or hoy }}</b>.<br>
+            <span style="font-size:14px">Elija otra fecha arriba o revise el historial pagados.</span>
+        </div>
+        {% endif %}
+    </div>
+
+
+    <div class="card gnr-section gnr-section-history" id="historial-pagados" style="margin-top:18px;border:1px solid #e2e8f0;background:#fafafa">
+        <h2 style="margin-top:0">📁 Historial pagados — {{ fecha_premios or hoy }}</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 12px 0">Solo consulta. No se puede pagar desde aquí.</p>
+        {% if historial_pagados_por_ticket and historial_pagados_por_ticket|length > 0 %}
+        <div class="tabla-resultados tabla-ganadores-wrap">
+        <table width="100%" style="border-collapse:collapse;opacity:.92" class="tabla-ganadores">
+            <thead>
+            <tr>
+                <th>Ticket</th><th>Estado</th><th>Lotería</th><th>Sorteo</th><th>Fecha</th><th>$ línea</th>
+                {% if mostrar_col_cajero %}<th>Cajero</th>{% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for t in historial_pagados_por_ticket %}
+            {% for ln in t.lineas %}
+            <tr>
+                {% if loop.first %}
+                <td rowspan="{{ t.lineas|length }}" style="font-weight:700">#{{ t.ticket_id }}</td>
+                {% endif %}
+                <td><span style="color:#15803d;font-weight:800;font-size:11px">PAGADO</span></td>
+                <td>{{ ln.lottery }}</td>
+                <td>{{ ln.draw }}</td>
+                <td style="font-size:12px;color:#64748b">
+                    {% set _fh = (ln.resultado_fecha_iso or ln.fecha_sorteo_linea or '') %}
+                    {% if _fh|length >= 10 %}{{ _fh[5:7] }}-{{ _fh[8:10] }}{% else %}—{% endif %}
+                </td>
+                <td>RD$ {{ "%.2f"|format(ln.premio) }}</td>
+                {% if mostrar_col_cajero and loop.first %}
+                <td rowspan="{{ t.lineas|length }}">{{ t.cajero }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p style="color:#94a3b8;font-size:14px;margin:0">Sin premios pagados para esta fecha.</p>
+        {% endif %}
+    </div>
+
+    {% if vista_admin %}
+    <div class="card" style="border:1px solid #fecaca;background:#fff7ed">
+        <h2 style="margin-top:0">↩ Revertir pago de premio (solo admin)</h2>
+        <p style="color:#444;font-size:14px;line-height:1.5;margin:0 0 12px 0">
+            Reversa lógica (soft): no borra tickets ni filas de <code>pagos_premios</code>; marca revertido, restablece líneas y ticket (<b>pagado</b>, <b>ganador</b>, <b>fecha_pago</b>),
+            compensa <code>movimientos_caja</code> y registra <code>REVERSAR_PAGO</code> en auditoría. Los reportes solo suman pagos <b>no revertidos</b>.
+        </p>
+        {% if tickets_pagos_admin_recientes and tickets_pagos_admin_recientes|length > 0 %}
+        <div class="tabla-resultados">
+        <table width="100%" style="border-collapse:collapse;font-size:14px" class="tabla-ganadores">
+            <thead><tr>
+                <th>Ticket</th><th>Cajero</th><th>Fecha pago</th><th>Monto vigente</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for tp in tickets_pagos_admin_recientes %}
+            <tr>
+                <td style="font-weight:800">#{{ tp.ticket_id }}</td>
+                <td>{{ tp.cajero }}</td>
+                <td style="white-space:nowrap">{% if tp.fecha_pago %}{{ tp.fecha_pago }}{% else %}—{% endif %}</td>
+                <td>RD$ {{ "%.2f"|format(tp.monto_registrado) }}</td>
+                <td>
+                    <button type="button" class="btnRevPremioGan" data-tid="{{ tp.ticket_id }}" data-monto="{{ "%.2f"|format(tp.monto_registrado) }}" style="padding:6px 12px;border-radius:6px;background:#b91c1c;color:#fff;border:none;font-weight:bold;cursor:pointer">Eliminar pago</button>
+                    <a href="/imprimir_pago/{{ tp.ticket_id }}" target="_blank" rel="noopener noreferrer" style="margin-left:8px;font-size:13px;color:#002D62;font-weight:600">Recibo</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p style="color:#64748b;margin:0">No hay tickets marcados como pagados en este momento.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if vista_admin %}
+    <script>
+    (function(){
+      document.querySelectorAll(".btnInvPremioGan").forEach(function(b){
+        b.addEventListener("click", function(){
+          var pid = b.getAttribute("data-premio-id");
+          if(!pid) return;
+          if(!window.confirm("¿Invalidar este premio? No modificará movimientos de caja ni saldos.\n\nInvalidate this prize? The cash register will not be changed.")) return;
+          b.disabled = true;
+          fetch("/api/admin/invalidar_premio", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest"},
+            body: JSON.stringify({ premio_id: parseInt(pid, 10), motivo: "Invalidado manualmente por resultado falso" })
+          }).then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+            .then(function(x){
+              b.disabled = false;
+              if(x.j && x.j.ok){
+                window.alert("Premio invalidado. No afectó la caja.\nPrize invalidated. Cash register was not affected.");
+                window.location.reload();
+                return;
+              }
+              window.alert((x.j && (x.j.message || x.j.error)) ? x.j.message || x.j.error : "Error");
+            }).catch(function(){ b.disabled = false; window.alert("Error de red"); });
+        });
+      });
+      }
+      gnrBindPagarHandlers();
+      tickPagarPremios();
+      setInterval(tickPagarPremios, 10000);
+    })();
+    </script>
+    {% endif %}
+
+    {% if vista_admin %}
+    <div id="modalRevPremioGan" style="display:none;position:fixed;z-index:10000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:16px">
+      <div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:22px;border:1px solid #e2e8f0">
+        <h3 style="margin:0 0 8px">Eliminar pago de premio</h3>
+        <p style="margin:0 0 10px;font-size:13px;color:#64748b">Ticket <strong id="mrgTidShow">—</strong> · Monto <strong id="mrgMontoShow">—</strong></p>
+        <input type="hidden" id="mrgTid" value="">
+        <label style="font-size:12px;font-weight:700">Motivo (opcional)</label>
+        <input id="mrgMotivo" maxlength="500" style="width:100%;padding:10px;margin:4px 0 12px;border-radius:8px;border:1px solid #cbd5e1;box-sizing:border-box">
+        <label style="font-size:12px;font-weight:700">Tu contraseña</label>
+        <input type="password" id="mrgPw" autocomplete="current-password" style="width:100%;padding:10px;margin:4px 0 12px;border-radius:8px;border:1px solid #cbd5e1;box-sizing:border-box">
+        <div id="mrgMsg" style="display:none;padding:10px;border-radius:8px;margin-bottom:10px;font-weight:700;font-size:13px"></div>
+        <div style="display:flex;gap:10px">
+          <button type="button" id="mrgOk" style="flex:1;padding:12px;background:#b91c1c;color:#fff;border:none;border-radius:10px;font-weight:800">Confirmar reversa</button>
+          <button type="button" id="mrgCancel" style="flex:1;padding:12px;background:#94a3b8;color:#fff;border:none;border-radius:10px;font-weight:700">Cancelar</button>
+        </div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      var modal = document.getElementById("modalRevPremioGan");
+      if(!modal) return;
+      function openG(tid, monto){
+        document.getElementById("mrgTid").value = String(tid);
+        document.getElementById("mrgTidShow").textContent = "#"+tid;
+        document.getElementById("mrgMontoShow").textContent = "RD$ "+Number(monto||0).toFixed(2);
+        document.getElementById("mrgMotivo").value = "";
+        document.getElementById("mrgPw").value = "";
+        var m = document.getElementById("mrgMsg"); if(m){ m.style.display="none"; m.textContent=""; }
+        modal.style.display = "flex";
+      }
+      document.querySelectorAll(".btnRevPremioGan").forEach(function(b){
+        b.addEventListener("click", function(){
+          openG(b.getAttribute("data-tid"), b.getAttribute("data-monto"));
+        });
+      });
+      document.getElementById("mrgCancel").onclick = function(){ modal.style.display = "none"; };
+      modal.onclick = function(e){ if(e.target===modal) modal.style.display = "none"; };
+      document.getElementById("mrgOk").onclick = function(){
+        var tid = document.getElementById("mrgTid").value;
+        var pw = document.getElementById("mrgPw").value;
+        var motivo = document.getElementById("mrgMotivo").value;
+        var msg = document.getElementById("mrgMsg");
+        if(!pw){ msg.style.display="block"; msg.style.background="#fee2e2"; msg.style.color="#991b1b"; msg.textContent="Contraseña obligatoria"; return; }
+        var okBtn = document.getElementById("mrgOk"); okBtn.disabled = true;
+        fetch("/admin/revertir_pago_premio/"+encodeURIComponent(tid), { method:"POST", headers:{"Content-Type":"application/json","X-Requested-With":"XMLHttpRequest"}, body: JSON.stringify({ admin_password: pw, motivo: motivo }) })
+          .then(function(r){ return r.text().then(function(txt){ var j={}; try{j=JSON.parse(txt);}catch(e){j={ok:r.ok,raw:txt};} if(window.Android&&window.Android.logApi){window.Android.logApi("POST","/admin/revertir_pago_premio/"+tid,tid,r.status,txt.slice(0,800));} return {ok:r.ok, j:j}; }); })
+          .then(function(x){
+            okBtn.disabled = false;
+            if(x.j && x.j.ok){ msg.style.display="block"; msg.style.background="#dcfce7"; msg.style.color="#166534"; msg.textContent="Reversa registrada."; setTimeout(function(){ location.reload(); }, 700); }
+            else { msg.style.display="block"; msg.style.background="#fee2e2"; msg.style.color="#991b1b"; msg.textContent=(x.j&&(x.j.error||x.j.message))||(!x.ok?"Error del servidor":"")||"No se pudo eliminar el pago"; }
+          }).catch(function(){ okBtn.disabled = false; msg.style.display="block"; msg.style.background="#fee2e2"; msg.style.color="#991b1b"; msg.textContent="Error de red"; });
+      };
+    })();
+    </script>
+    {% endif %}
+
+    <script>
+    (function(){
+        {% if debug_ganadores %}
+        console.log("DEBUG_GANADORES resultados_hoy (RD)", {{ debug_resultados_cierre|tojson|safe }});
+        (function(){
+            function norm(n){ return String(n == null ? "" : n).replace(/\\D/g, "").padStart(2, "0").slice(-2); }
+            var primero = norm("02"), segundo = norm("43"), tercero = norm("41");
+            var jugada = norm("2");
+            console.log({ jugada: jugada, primero: primero, segundo: segundo, tercero: tercero,
+                match: jugada === primero || jugada === segundo || jugada === tercero });
+        })();
+        {% endif %}
+        var audioResultado = document.getElementById("alertaResultado");
+        function sonarResultado(){
+            if(audioResultado) audioResultado.play().catch(function(){});
+        }
+        async function actualizarResultados(){
+            try {
+                var res = await fetch("/api/resultados_hoy");
+                var data = await res.json();
+                for (var i = 0; i < data.length; i++) {
+                    var r = data[i];
+                    var id = r.lottery + "_" + (r.draw || "");
+                    var el = document.getElementById(id);
+                    if (!el) continue;
+                    var fel = document.getElementById("fecha_" + id);
+                    if (fel && r.fecha_display) {
+                        var fSafe = String(r.fecha_display).replace(/[&<>"]/g, function(ch){
+                            return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch] || ch;
+                        });
+                        fel.innerHTML = "<span class=\"res-fecha-chip\">" + fSafe + "</span>";
+                    }
+                    var cel = document.getElementById("cierre_" + id);
+                    if (cel) {
+                        var cTxt = r.hora_cierre || r.draw_display || r.draw || "--";
+                        var cSafe = String(cTxt).replace(/[&<>"]/g, function(ch){
+                            return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch] || ch;
+                        });
+                        cel.innerHTML = "<span class=\"res-cierre-chip\">" + cSafe + "</span>";
+                    }
+                    var n1 = r.n1 || r.primero || "--";
+                    var n2 = r.n2 || r.segundo || "--";
+                    var n3 = r.n3 || r.tercero || "--";
+                    var nuevo = n1 + "-" + n2 + "-" + n3;
+                    var colorClass = (r.color === "green") ? "numero-verde" : "numero-gris";
+                    if (el.getAttribute("data-num") !== nuevo) {
+                        el.setAttribute("data-num", nuevo);
+                        el.innerHTML = "<span class=\\"numero " + colorClass + "\\">" + n1 + "</span> " +
+                            "<span class=\\"numero " + colorClass + "\\">" + n2 + "</span> " +
+                            "<span class=\\"numero " + colorClass + "\\">" + n3 + "</span>";
+                        sonarResultado();
+                    } else {
+                        el.innerHTML = "<span class=\\"numero " + colorClass + "\\">" + n1 + "</span> " +
+                            "<span class=\\"numero " + colorClass + "\\">" + n2 + "</span> " +
+                            "<span class=\\"numero " + colorClass + "\\">" + n3 + "</span>";
+                    }
+                }
+            } catch (e) {
+                console.log("Error actualizando resultados", e);
+            }
+        }
+        setInterval(actualizarResultados, 30000);
+        setTimeout(actualizarResultados, 2000);
+    })();
+    </script>
+    <script>
+    (function(){
+      var ESP_MS = {{ (premio_pago_espera_segundos|default(600)) * 1000 }};
+      var pendingPay = {};
+      function fmtRestante(ms){
+        if(ms <= 0) return "0:00";
+        var s = Math.ceil(ms / 1000);
+        var m = Math.floor(s / 60);
+        var r = s % 60;
+        return m + ":" + (r < 10 ? "0" : "") + r;
+      }
+      function showPagarToast(status, text){
+        var el = document.getElementById("gnr-pagar-toast");
+        if(!el) return;
+        try {
+          document.querySelectorAll(".gnr-flash-banner").forEach(function(b){ b.remove(); });
+        } catch(e1) {}
+        el.style.display = "block";
+        el.textContent = text || "";
+        el.style.border = "1px solid #bbf7d0";
+        el.style.background = "#dcfce7";
+        el.style.color = "#166534";
+        if(status === "already_paid"){
+          el.style.border = "1px solid #7dd3fc";
+          el.style.background = "#e0f2fe";
+          el.style.color = "#075985";
+        }
+      }
+      function tickOneBox(box, btnClass, labEl){
+        if((box.getAttribute("data-pagar-fetching") || "") === "1"){
+          return;
+        }
+        var btn = box.querySelector("button." + btnClass);
+        if(!btn) return;
+        var nowWall = Date.now();
+        var srv0 = parseInt(box.getAttribute("data-server-now-ms") || "0", 10) || 0;
+        if(box.getAttribute("data-server-now-ms") === "__GNR_SERVER_NOW_MS__"){
+          srv0 = 0;
+        }
+        var skew = srv0 ? Math.max(0, srv0 - nowWall) : 0;
+        var now = nowWall + skew;
+        var tienePremio = (box.getAttribute("data-tiene-ganador-premio") || "0") === "1";
+        var ms = parseInt(box.getAttribute("data-habilitar-ms") || "0", 10) || 0;
+        if(!tienePremio){
+          btn.disabled = true;
+          btn.style.cursor = "not-allowed";
+          btn.style.opacity = "0.5";
+          btn.classList.add("gan-pago-locked");
+          if(labEl){
+            labEl.style.display = "block";
+            labEl.textContent = "Sin premio válido pendiente (verifique cruce de ganadores o recargue).";
+          }
+          return;
+        }
+        if(!ms || ms > 1e15){
+          btn.disabled = true;
+          btn.style.cursor = "not-allowed";
+          btn.style.opacity = "0.5";
+          btn.classList.add("gan-pago-locked");
+          if(labEl){
+            labEl.style.display = "block";
+            labEl.textContent = "Esperando fecha/hora del sorteo válida; recargue en unos segundos.";
+          }
+          return;
+        }
+        if(now >= ms){
+          btn.disabled = false;
+          btn.style.cursor = "pointer";
+          btn.style.opacity = "1";
+          btn.classList.remove("gan-pago-locked");
+          if(labEl){ labEl.textContent = ""; labEl.style.display = "none"; }
+          return;
+        }
+        btn.disabled = true;
+        btn.style.cursor = "not-allowed";
+        btn.style.opacity = "0.5";
+        btn.classList.add("gan-pago-locked");
+        var rest = ms - now;
+        if(labEl){
+          labEl.style.display = "block";
+          labEl.textContent = "Disponible en " + fmtRestante(rest) + " (" + Math.round(ESP_MS/60000) + " min tras el sorteo, hora RD)";
+        }
+      }
+
+      function gnrTicketCards(tid, root){
+        root = root || document;
+        if(!tid){ return []; }
+        var q = 'article.gnr-premio-card[data-ticket-id="'+tid+'"], article.gnr-card-pagar-todos[data-ticket-id="'+tid+'"]';
+        return Array.prototype.slice.call(root.querySelectorAll(q));
+      }
+      function gnrRefreshTicketBlock(tid){
+        if(!tid){ window.location.reload(); return; }
+        fetch("/api/ganadores" + (window.location.search || ""), {credentials:"same-origin", headers:{"Accept":"application/json"}})
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if(!d || !d.ok || !d.html){ window.location.reload(); return; }
+            var doc = new DOMParser().parseFromString(d.html, "text/html");
+            var fresh = gnrTicketCards(String(tid), doc);
+            var old = gnrTicketCards(String(tid), document);
+            if(!old.length && !fresh.length){ window.location.reload(); return; }
+            var grid = document.querySelector(".gnr-cards-grid");
+            if(!grid){ window.location.reload(); return; }
+            var idx = old[0] ? Array.prototype.indexOf.call(grid.children, old[0]) : -1;
+            old.forEach(function(c){ c.remove(); });
+            if(!fresh.length){
+              gnrBindPagarHandlers();
+              tickPagarPremios();
+              return;
+            }
+            fresh.forEach(function(nr, i){
+              var node = document.importNode(nr, true);
+              var ref = idx >= 0 ? grid.children[idx + i] : null;
+              if(ref){ grid.insertBefore(node, ref); }
+              else { grid.appendChild(node); }
+            });
+            gnrBindPagarHandlers();
+            tickPagarPremios();
+          })
+          .catch(function(){ window.location.reload(); });
+      }
+      function tickPagarPremios(){
+        document.querySelectorAll("div.form-pagar-premio-ganador").forEach(function(box){
+          var tid = box.getAttribute("data-ticket-id") || "";
+          var lab = document.querySelector('.gan-pago-cooldown[data-for-ticket="'+tid+'"]');
+          tickOneBox(box, "btn-pagar-premio-ganador", lab);
+        });
+        document.querySelectorAll("div.form-pagar-premio-linea").forEach(function(box){
+          var pid = box.getAttribute("data-premio-id") || "";
+          var lab = document.querySelector('.gan-pago-cooldown-linea[data-for-premio="'+pid+'"]');
+          tickOneBox(box, "btn-pagar-premio-linea", lab);
+        });
+      }
+      function gnrBindPagarHandlers(){
+        gnrBindTicketPayHandlers();
+        gnrBindLinePayHandlers();
+      }
+      function gnrBindTicketPayHandlers(){
+      document.querySelectorAll("div.form-pagar-premio-ganador:not([data-gnr-pay-bound])").forEach(function(box){
+        box.setAttribute("data-gnr-pay-bound", "1");
+        var btn = box.querySelector("button.btn-pagar-premio-ganador");
+        if(!btn) return;
+        btn.addEventListener("click", function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          var tid = box.getAttribute("data-ticket-id") || "";
+          console.log("[PAGAR_CLICK] ticket_id=" + tid);
+          if(!tid){ return; }
+          if(pendingPay["t:"+tid]){
+            console.log("[PAGAR_REQUEST_SKIP] pending ticket_id=" + tid);
+            return;
+          }
+          if((box.getAttribute("data-tiene-ganador-premio") || "0") !== "1"){
+            alert("No hay premio válido pendiente para este ticket.");
+            return;
+          }
+          var srv0 = parseInt(box.getAttribute("data-server-now-ms") || "0", 10) || 0;
+          if(box.getAttribute("data-server-now-ms") === "__GNR_SERVER_NOW_MS__"){
+            srv0 = 0;
+          }
+          var skew = srv0 ? Math.max(0, srv0 - Date.now()) : 0;
+          var now = Date.now() + skew;
+          var ms = parseInt(box.getAttribute("data-habilitar-ms") || "0", 10) || 0;
+          if(ms && ms < 1e15 && now < ms){
+            alert("Debe esperar al menos " + Math.round(ESP_MS/60000) + " minutos después del sorteo (hora RD). El servidor rechazará el pago antes de tiempo.");
+            return;
+          }
+          pendingPay["t:"+tid] = 1;
+          box.setAttribute("data-pagar-fetching", "1");
+          var prevText = btn.textContent;
+          btn.disabled = true;
+          btn.style.cursor = "not-allowed";
+          btn.style.opacity = "0.6";
+          btn.textContent = "Procesando…";
+          console.log("[PAGAR_REQUEST_START] ticket_id=" + tid);
+          fetch("/api/pagar_premio/" + encodeURIComponent(tid), {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: "{}"
+          })
+            .then(function(r){
+              return r.text().then(function(txt){
+                var j = null;
+                try {
+                  j = txt && txt.length ? JSON.parse(txt) : null;
+                } catch (e2) {
+                  j = null;
+                }
+                return { http: r.status, j: j, raw: txt };
+              });
+            })
+            .then(function(x){
+              console.log("[PAGAR_REQUEST_DONE] ticket_id=" + tid, x.j);
+              delete pendingPay["t:"+tid];
+              box.removeAttribute("data-pagar-fetching");
+              var okResp = x.j && (x.j.ok === true || x.j.ok === 1 || String(x.j.ok).toLowerCase() === "true");
+              var st = String((x.j && x.j.status != null) ? x.j.status : "").toLowerCase().trim();
+              if(okResp && (st === "paid" || st === "already_paid")){
+                showPagarToast(st, (x.j && x.j.message) ? x.j.message : "");
+                gnrRefreshTicketBlock(tid);
+                return;
+              }
+              btn.disabled = false;
+              btn.textContent = prevText || "💰 Pagar todos los premios del ticket";
+              tickPagarPremios();
+              var msg;
+              if(x.j && (x.j.message || x.j.error)){
+                msg = x.j.message || x.j.error;
+              } else if(!x.j && x.http >= 200 && x.http < 300){
+                msg = "La respuesta del servidor no es JSON válido. Recargue la página e intente de nuevo.";
+                console.warn("[PAGAR_REQUEST_PARSE] ticket_id=" + tid, (x.raw || "").slice(0, 400));
+              } else {
+                msg = "Error HTTP " + x.http;
+              }
+              console.log("[PAGAR_REQUEST_ERROR] ticket_id=" + tid, msg);
+              alert(msg);
+            })
+            .catch(function(err){
+              console.log("[PAGAR_REQUEST_ERROR] ticket_id=" + tid, err);
+              delete pendingPay["t:"+tid];
+              box.removeAttribute("data-pagar-fetching");
+              btn.disabled = false;
+              btn.textContent = prevText || "💰 Pagar todos los premios del ticket";
+              tickPagarPremios();
+              alert("Error de red al registrar el pago.");
+            });
+        });
+      });
+      }
+      function gnrBindLinePayHandlers(){
+      document.querySelectorAll("div.form-pagar-premio-linea:not([data-gnr-pay-bound])").forEach(function(box){
+        box.setAttribute("data-gnr-pay-bound", "1");
+        var btn = box.querySelector("button.btn-pagar-premio-linea");
+        if(!btn) return;
+        btn.addEventListener("click", function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          var pid = box.getAttribute("data-premio-id") || "";
+          var tid = box.getAttribute("data-ticket-id") || "";
+          var lid = box.getAttribute("data-line-id") || "";
+          if(!pid){ return; }
+          if(pendingPay["p:"+pid]){
+            return;
+          }
+          if((box.getAttribute("data-tiene-ganador-premio") || "0") !== "1"){
+            alert("No hay premio válido pendiente para esta jugada.");
+            return;
+          }
+          var srv0 = parseInt(box.getAttribute("data-server-now-ms") || "0", 10) || 0;
+          if(box.getAttribute("data-server-now-ms") === "__GNR_SERVER_NOW_MS__"){
+            srv0 = 0;
+          }
+          var skew = srv0 ? Math.max(0, srv0 - Date.now()) : 0;
+          var now = Date.now() + skew;
+          var ms = parseInt(box.getAttribute("data-habilitar-ms") || "0", 10) || 0;
+          if(ms && ms < 1e15 && now < ms){
+            alert("Debe esperar al menos " + Math.round(ESP_MS/60000) + " minutos después del sorteo (hora RD). El servidor rechazará el pago antes de tiempo.");
+            return;
+          }
+          pendingPay["p:"+pid] = 1;
+          box.setAttribute("data-pagar-fetching", "1");
+          var prevText = btn.textContent;
+          btn.disabled = true;
+          btn.style.opacity = "0.6";
+          btn.textContent = "Procesando…";
+          fetch("/api/pagar_premio_id/" + encodeURIComponent(pid), {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              ticket_id: tid ? parseInt(tid, 10) : null,
+              line_id: lid ? parseInt(lid, 10) : null
+            })
+          })
+            .then(function(r){
+              return r.text().then(function(txt){
+                var j = null;
+                try { j = txt && txt.length ? JSON.parse(txt) : null; } catch (e2) { j = null; }
+                return { http: r.status, j: j, raw: txt };
+              });
+            })
+            .then(function(x){
+              delete pendingPay["p:"+pid];
+              box.removeAttribute("data-pagar-fetching");
+              var okResp = x.j && (x.j.ok === true || x.j.ok === 1 || String(x.j.ok).toLowerCase() === "true");
+              var st = String((x.j && x.j.status != null) ? x.j.status : "").toLowerCase().trim();
+              if(okResp && (st === "paid" || st === "already_paid")){
+                showPagarToast(st, (x.j && x.j.message) ? x.j.message : "");
+                gnrRefreshTicketBlock(tid || (x.j && x.j.ticket_id ? String(x.j.ticket_id) : ""));
+                return;
+              }
+              btn.disabled = false;
+              btn.textContent = prevText || "💰 Pagar este premio";
+              tickPagarPremios();
+              var msg = (x.j && (x.j.message || x.j.error)) ? (x.j.message || x.j.error) : ("Error HTTP " + x.http);
+              alert(msg);
+            })
+            .catch(function(err){
+              delete pendingPay["p:"+pid];
+              box.removeAttribute("data-pagar-fetching");
+              btn.disabled = false;
+              btn.textContent = prevText || "💰 Pagar este premio";
+              tickPagarPremios();
+              alert("Error de red al registrar el pago.");
+            });
+        });
+      });
+      }
+      var modalElim = document.getElementById("modalEliminarTicketFalso");
+      var btnElimOpen = document.getElementById("btnGnrEliminarTicketFalso");
+      var btnElimClose = document.getElementById("btnGnrModalElimCerrar");
+      var btnElimCancel = document.getElementById("btnGnrModalElimCancelar");
+      var btnElimConfirm = document.getElementById("btnGnrModalElimConfirmar");
+      var selElimTicket = document.getElementById("gnrElimTicketSelect");
+      var txtElimMotivo = document.getElementById("gnrElimMotivo");
+      var msgElim = document.getElementById("gnrElimMsg");
+      function gnrModalElimShow(show){
+        if(!modalElim) return;
+        modalElim.style.display = show ? "flex" : "none";
+        modalElim.setAttribute("aria-hidden", show ? "false" : "true");
+        if(show && txtElimMotivo){ txtElimMotivo.focus(); }
+        if(!show && msgElim){ msgElim.style.display = "none"; }
+      }
+      if(btnElimOpen){
+        btnElimOpen.addEventListener("click", function(){
+          if(selElimTicket && selElimTicket.options.length <= 1){
+            alert("No hay tickets pendientes en la lista para eliminar.");
+            return;
+          }
+          gnrModalElimShow(true);
+        });
+      }
+      [btnElimClose, btnElimCancel].forEach(function(b){
+        if(b){ b.addEventListener("click", function(){ gnrModalElimShow(false); }); }
+      });
+      if(modalElim){
+        modalElim.addEventListener("click", function(ev){
+          if(ev.target === modalElim){ gnrModalElimShow(false); }
+        });
+      }
+      if(btnElimConfirm){
+        btnElimConfirm.addEventListener("click", function(){
+          var tid = selElimTicket ? (selElimTicket.value || "").trim() : "";
+          var motivo = txtElimMotivo ? (txtElimMotivo.value || "").trim() : "";
+          if(!tid){ alert("Seleccione un ticket."); return; }
+          if(motivo.length < 3){ alert("El motivo de eliminación es obligatorio (mín. 3 caracteres)."); return; }
+          if(!confirm("¿Confirma eliminar el ticket #" + tid + " de la lista de premios pendientes?")){ return; }
+          btnElimConfirm.disabled = true;
+          if(msgElim){ msgElim.style.display = "none"; }
+          fetch("/api/admin/eliminar_ticket_falso", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest"},
+            body: JSON.stringify({ ticket_id: parseInt(tid, 10), motivo: motivo })
+          }).then(function(r){
+            return r.json().then(function(j){ return { http: r.status, j: j }; });
+          }).then(function(x){
+            btnElimConfirm.disabled = false;
+            if(x.j && x.j.ok){
+              if(msgElim){
+                msgElim.style.display = "block";
+                msgElim.style.background = "#dcfce7";
+                msgElim.style.color = "#166534";
+                msgElim.textContent = x.j.message || "✅ Ticket eliminado correctamente";
+              }
+              try { sessionStorage.removeItem("gnr_html_v2"); sessionStorage.removeItem("gnr_html_v1"); } catch(_ce) {}
+              setTimeout(function(){
+                var fe = "";
+                var inp = document.querySelector('input[name="fecha_premios"]');
+                if(inp && inp.value){ fe = inp.value.trim(); }
+                var u = "/ganadores?fecha_premios=" + encodeURIComponent(fe || "") + "&_=" + Date.now();
+                window.location.href = u;
+              }, 900);
+              return;
+            }
+            var err = (x.j && x.j.error) ? x.j.error : ("Error HTTP " + x.http);
+            if(x.http === 403){ err = "Solo administradores pueden eliminar tickets."; }
+            alert(err);
+          }).catch(function(){
+            btnElimConfirm.disabled = false;
+            alert("Error de red al eliminar el ticket.");
+          });
+        });
+      }
+      var btnRec = document.getElementById("btnGnrRecalcManual");
+      if(btnRec){
+        btnRec.addEventListener("click", function(){
+          var fe = (btnRec.getAttribute("data-fecha") || "").trim();
+          var inp = document.querySelector('input[name="fecha_premios"]');
+          if(inp && inp.value){ fe = inp.value.trim(); }
+          if(!fe){ alert("Seleccione una fecha."); return; }
+          var st = document.getElementById("gnrRecalcStatus");
+          btnRec.disabled = true;
+          if(st){ st.textContent = "Recalculando…"; }
+          fetch("/api/recalcular_ganadores_fecha", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {"Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest"},
+            body: JSON.stringify({ fecha: fe })
+          }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+            .then(function(x){
+              btnRec.disabled = false;
+              if(x.j && x.j.ok){
+                try { sessionStorage.removeItem("gnr_html_v2"); sessionStorage.removeItem("gnr_html_v1"); } catch(_ce) {}
+                var u = "/ganadores?fecha_premios=" + encodeURIComponent(fe) + "&_=" + Date.now();
+                window.location.href = u;
+                return;
+              }
+              alert((x.j && x.j.error) ? x.j.error : "No se pudo recalcular.");
+              if(st){ st.innerHTML = 'Fecha activa: <b>'+fe+'</b>'; }
+            })
+            .catch(function(){
+              btnRec.disabled = false;
+              alert("Error de red al recalcular.");
+              if(st){ st.innerHTML = 'Fecha activa: <b>'+fe+'</b>'; }
+            });
+        });
+      }
+      gnrBindPagarHandlers();
+      tickPagarPremios();
+      setInterval(tickPagarPremios, 10000);
+      try {
+        var gnrRoot = document.getElementById("gnr-premios-root");
+        var nRec = gnrRoot ? parseInt(gnrRoot.getAttribute("data-ganadores-recibidos") || "0", 10) : 0;
+        var nTic = gnrRoot ? parseInt(gnrRoot.getAttribute("data-tickets-recibidos") || "0", 10) : 0;
+        console.log("[GANADORES_FRONT] recibidos=", nRec, "tickets=", nTic);
+        var cards = document.querySelectorAll("#gnr-cards-grid article.gnr-premio-card:not(.gnr-card-pagar-todos)");
+        console.log("[GANADORES_RENDER] cards=", cards.length);
+        cards.forEach(function(card, idx){
+          var tid = card.getAttribute("data-ticket-id") || "";
+          var pid = card.getAttribute("data-premio-id") || "";
+          var lotEl = card.querySelector(".gnr-val");
+          var lotTxt = "";
+          try {
+            var lotNodes = card.querySelectorAll(".gnr-lbl");
+            for(var i=0;i<lotNodes.length;i++){
+              if((lotNodes[i].textContent||"").trim().toLowerCase()==="lotería"){
+                var nv = lotNodes[i].parentElement && lotNodes[i].parentElement.querySelector(".gnr-val");
+                if(nv) lotTxt = (nv.textContent||"").trim();
+              }
+            }
+          } catch(_eLot) {}
+          console.log("[GANADORES_RENDER] ticket_id=", tid, "lottery=", lotTxt, "premio_id=", pid);
+        });
+      } catch(_gnrLog) {}
+    })();
+    </script>

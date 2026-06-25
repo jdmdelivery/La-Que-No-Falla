@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ganadores</title>
+</head>
+<body style="font-family:Inter,Segoe UI,sans-serif;max-width:980px;margin:24px auto;padding:20px;background:#07111f;color:#f8fafc">
+{% for msg in get_flashed_messages() %}
+<p style="background:#14532d;padding:10px 12px;border-radius:10px;border:1px solid #22c55e;color:#dcfce7">{{ msg }}</p>
+{% endfor %}
+<h1 style="color:#ffffff;margin:0 0 12px 0">Ganadores</h1>
+<form method="get" action="/ganadores" style="display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:20px;padding:14px;border:1px solid #2b4a7a;border-radius:14px;background:#101c33;">
+    <div>
+        <label style="display:block;font-size:12px;color:#d8e3f2;margin-bottom:4px;font-weight:700">Desde</label>
+        <input type="date" name="desde" value="{{ desde }}" style="padding:8px 10px;border-radius:8px;border:1px solid #3b82f6;background:#0b1629;color:#fff;">
+    </div>
+    <div>
+        <label style="display:block;font-size:12px;color:#d8e3f2;margin-bottom:4px;font-weight:700">Hasta</label>
+        <input type="date" name="hasta" value="{{ hasta }}" style="padding:8px 10px;border-radius:8px;border:1px solid #3b82f6;background:#0b1629;color:#fff;">
+    </div>
+    <button type="submit" style="padding:10px 14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;border-radius:10px;font-weight:800;cursor:pointer;">Filtrar</button>
+</form>
+{% if ganadores %}
+    {% for g in ganadores %}
+        <p style="margin:8px 0;line-height:1.5;background:#101c33;border:1px solid #2b4a7a;padding:10px 12px;border-radius:10px;color:#f8fafc">{{ g.lottery }} {{ g.draw }} - {{ g.numero }} - <b>RD${{ g.premio }}</b></p>
+    {% endfor %}
+{% else %}
+    <p style="color:#d8e3f2">No hay tickets ganadores</p>
+{% endif %}
+<p style="margin-top:28px"><a href="/" style="color:#93c5fd;text-decoration:none;font-weight:700">← Volver</a></p>
+</body>
+</html>

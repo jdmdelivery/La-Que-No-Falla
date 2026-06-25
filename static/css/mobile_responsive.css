@@ -1,0 +1,365 @@
+/**
+ * Mobile-first fixes — iPhone 390px / Android 360px
+ * No business logic; layout & touch only.
+ */
+
+html.ui-modern,
+body.ui-modern {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+}
+
+/* ===== Touch targets (min 44px) ===== */
+body.ui-modern .menu-btn,
+body.ui-modern .logout-btn,
+body.ui-modern .ar-bell-btn,
+body.ui-modern .sb-link,
+body.ui-modern .venta-btn,
+body.ui-modern button,
+body.ui-modern .lim-btn,
+body.ui-modern .admin-btn,
+body.ui-modern .gnr-btn-imprimir,
+body.ui-modern input[type="submit"],
+body.ui-modern input[type="button"] {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+body.ui-modern input,
+body.ui-modern select,
+body.ui-modern textarea {
+  font-size: 16px !important; /* evita zoom iOS Safari */
+  max-width: 100%;
+}
+
+body.ui-modern.sidebar-open {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Topbar / campanita ===== */
+@media (max-width: 480px) {
+  body.ui-modern .ar-bell-btn {
+    right: max(88px, calc(72px + env(safe-area-inset-right, 0px)));
+    min-width: 40px;
+    min-height: 40px;
+    padding: 6px 10px;
+    font-size: 16px;
+  }
+  body.ui-modern .logout-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    right: max(12px, env(safe-area-inset-right, 0px));
+  }
+  body.ui-modern .menu-btn {
+    font-size: 24px;
+    padding: 8px 12px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== Tablas: scroll contenido o tarjetas ===== */
+body.ui-modern .tabla-resultados,
+body.ui-modern .lim-table-wrap,
+body.ui-modern .modern-table-wrap,
+body.ui-modern .gnr-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+@media (max-width: 640px) {
+  body.ui-modern .tabla-resultados-main,
+  body.ui-modern .tabla-resultados table {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Resultados ganadores: filas apiladas */
+  body.ui-modern.page-resultados .tabla-resultados-main thead {
+    display: none;
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody tr {
+    display: block;
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #2b4a7a;
+    border-radius: 12px;
+    background: #0f1e35;
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody td {
+    display: block;
+    padding: 6px 0;
+    border: none;
+    text-align: left;
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody td.res-lot-col::before {
+    content: "Lotería";
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody td:nth-child(2)::before {
+    content: "Resultados";
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody td:nth-child(3)::before {
+    content: "Fecha";
+  }
+  body.ui-modern.page-resultados .tabla-resultados-main tbody td:nth-child(4)::before {
+    content: "Cierre";
+  }
+
+  /* Ganadores pendientes tabla ancha */
+  body.ui-modern .tabla-ganadores-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.ui-modern .tabla-ganadores-wrap table {
+    min-width: 0 !important;
+  }
+}
+
+/* ===== Límites / números calientes ===== */
+@media (max-width: 640px) {
+  body.ui-modern .lim-wrap {
+    padding: 12px 10px 80px;
+  }
+  body.ui-modern .lim-grid,
+  body.ui-modern .nc-grid-3,
+  body.ui-modern .nc-grid-4,
+  body.ui-modern .nc-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  body.ui-modern .lim-actions {
+    flex-direction: column;
+  }
+  body.ui-modern .lim-actions .lim-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+  body.ui-modern .lim-table-wrap {
+    max-height: none;
+    overflow-x: auto;
+  }
+  body.ui-modern .nc-modal-box {
+    width: 100%;
+    max-height: 90dvh;
+    margin: 0;
+    border-radius: 14px 14px 0 0;
+    align-self: flex-end;
+  }
+  body.ui-modern .nc-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+/* ===== Dashboard admin ===== */
+@media (max-width: 640px) {
+  body.ui-modern.page-dashboard .dashboard {
+    padding: 8px 10px 100px !important;
+  }
+  body.ui-modern.page-dashboard .metrics {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  body.ui-modern.page-dashboard .metric-card {
+    padding: 14px !important;
+  }
+  body.ui-modern.page-dashboard .metric {
+    font-size: 1.5rem !important;
+  }
+  body.ui-modern.page-dashboard .panel {
+    padding: 12px !important;
+  }
+  body.ui-modern .ar-panel-wrap {
+    margin: 0 0 12px !important;
+    padding: 12px !important;
+  }
+  body.ui-modern .ar-bell-dropdown {
+    width: calc(100vw - 16px);
+    right: 8px;
+    max-height: 70dvh;
+  }
+  body.ui-modern .ar-toast-wrap {
+    left: 8px;
+    right: 8px;
+    transform: none;
+    max-width: none;
+  }
+}
+
+/* ===== Venta POS ===== */
+@media (max-width: 480px) {
+  body.ui-modern.page-venta {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  body.ui-modern.page-venta .venta-wrap {
+    padding: 8px 10px 16px !important;
+  }
+  body.ui-modern.page-venta .venta-pos-head h2 {
+    font-size: 1.05rem !important;
+  }
+  body.ui-modern.page-venta .venta-pos-head {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+  body.ui-modern.page-venta .venta-lot-catalog {
+    max-height: min(380px, 50dvh) !important;
+  }
+  body.ui-modern.page-venta .venta-cart-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body.ui-modern.page-venta .venta-btn-realizar,
+  body.ui-modern.page-venta .venta-btn-agregar,
+  body.ui-modern.page-venta #ventaBtnAgregar {
+    width: 100%;
+    min-height: 52px;
+    font-size: 16px !important;
+  }
+  body.ui-modern.page-venta .venta-field input,
+  body.ui-modern.page-venta .venta-field select {
+    min-height: 48px;
+  }
+}
+
+/* ===== Login ===== */
+body.ui-modern.page-login {
+  overflow-x: hidden;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+@media (max-width: 480px) {
+  body.ui-modern.page-login .login-wrap {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    padding: max(24px, env(safe-area-inset-top)) 16px 32px;
+    min-height: 100dvh;
+    justify-content: center;
+  }
+  body.ui-modern.page-login .login-card {
+    padding: 28px 20px !important;
+    max-width: 100% !important;
+    border-radius: 20px;
+  }
+  body.ui-modern.page-login .main-title {
+    font-size: clamp(22px, 6vw, 32px) !important;
+    margin-bottom: 20px;
+  }
+  body.ui-modern.page-login .logo-dr img {
+    width: 100px;
+  }
+}
+
+/* ===== Modales genéricos ===== */
+@media (max-width: 640px) {
+  body.ui-modern [id*="modal"],
+  body.ui-modern .modal-overlay {
+    padding: 8px !important;
+    align-items: flex-end !important;
+  }
+  body.ui-modern [id*="modal"] > div,
+  body.ui-modern .modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92dvh !important;
+    overflow-y: auto !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+  /* Impresión / ticket preview */
+  body.ui-modern .ticket-preview-wrap,
+  body.ui-modern #ticketPrintFrame {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ===== Banco / cierres templates ===== */
+@media (max-width: 640px) {
+  .wrap,
+  body > .wrap {
+    padding: 12px 10px 80px !important;
+  }
+  .cards {
+    grid-template-columns: 1fr !important;
+  }
+  table.responsive-stack thead {
+    display: none;
+  }
+  table.responsive-stack tbody tr {
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid rgba(96, 165, 250, 0.28);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  table.responsive-stack tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+    border: none;
+  }
+  table.responsive-stack tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+}
+
+/* ===== Admin límites grid números ===== */
+@media (max-width: 640px) {
+  body.ui-modern .grid-numeros {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+  body.ui-modern .grid-numeros label {
+    padding: 10px 4px !important;
+    font-size: 13px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== Meta cards ranking ===== */
+@media (max-width: 390px) {
+  body.ui-modern .meta-card {
+    min-width: 140px !important;
+    max-width: 200px;
+  }
+  :root {
+    --metas-panel-h: 148px;
+  }
+}
+
+@media (max-width: 360px) {
+  body.ui-modern .brand-badge__text {
+    font-size: 9px !important;
+  }
+  body.ui-modern .topbar {
+    min-height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+  }
+}

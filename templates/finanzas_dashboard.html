@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard financiero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          colors: { surface: '#0f172a' },
+        },
+      },
+    };
+  </script>
+  <style>:root{color-scheme:dark}body{font-family:Inter,system-ui,sans-serif;background:#020617;color:#f1f5f9;background-image:radial-gradient(900px 500px at 10% -10%,rgba(59,130,246,.12),transparent 55%)}.num{font-variant-numeric:tabular-nums}</style>
+</head>
+<body class="min-h-screen antialiased pb-16">
+
+{% set D = data if data is defined else {} %}
+{% set f = D.get('filters_echo') or {} %}
+{% set t = D.get('totales') or {} %}
+{% set T = D.get('tarjetas') or {} %}
+{% set qa_struct = D.get('quincental') or {} %}
+{% set qact_tot = ((qa_struct.get('actual') or {}).get('totales') or {}) %}
+{% set qprev_tot = ((qa_struct.get('anterior') or {}).get('totales') or {}) %}
+{% set bestl = T.get('mejor_loteria') %}
+{% set worstl = T.get('peor_loteria') %}
+{% set bestc = T.get('mejor_cajero') %}
+{% set worstc = T.get('peor_cajero') %}
+{% set rc = D.get('resumen_por_cajero') or [] %}
+{% set fc = (request.args.get('period') or f.get('period') or 'monthly') %}
+
+  <header class="border-b border-white/10 bg-slate-900/70 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-end sm:justify-between lg:px-8">
+      <div>
+        <p class="text-sm font-semibold text-white">{{ usuario_bienvenida }}</p>
+        <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-white">Dashboard financiero</h1>
+        <p class="mt-2 text-sm text-slate-400">{{ fecha }}</p>
+      </div>
+      <nav class="flex flex-wrap gap-2 text-xs font-semibold">
+        {% set qs = request.query_string.decode('utf-8') if request.query_string else '' %}
+        <a href="/reporte/finanzas/dashboard/export{% if qs %}?{{ qs }}&{% else %}?{% endif %}format=csv" class="rounded-lg border border-white/15 px-3 py-2 text-white hover:bg-white/10">CSV</a>
+        <a href="/reporte/finanzas/dashboard/export{% if qs %}?{{ qs }}&{% else %}?{% endif %}format=xls" class="rounded-lg border border-white/15 px-3 py-2 text-emerald-200 hover:bg-emerald-950/50">Excel</a>
+        <a href="/reporte/finanzas/dashboard/export{% if qs %}?{{ qs }}&{% else %}?{% endif %}format=pdf" class="rounded-lg border border-white/15 px-3 py-2 text-rose-200 hover:bg-rose-950/40">PDF</a>
+        <a href="/api/finance/dashboard{% if qs %}?{{ qs }}{% endif %}" class="rounded-lg border border-sky-500/40 px-3 py-2 text-sky-100 hover:bg-sky-950/60">JSON</a>
+        <a href="/reporte/ganancias/mensual?legacy=1" class="rounded-lg border border-white/10 px-3 py-2 text-slate-300 hover:bg-white/5">Legacy (cierres de caja)</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+
+    <form method="get" action="/reporte/finanzas/dashboard" id="financeDashForm" class="rounded-2xl border border-white/10 bg-slate-900/55 p-5 shadow-xl lg:p-8">
+      <div class="grid gap-8 lg:grid-cols-2">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Rango</label>
+          <select name="period" id="fdPeriod" class="mt-2 w-full rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
+            <option value="monthly" {% if fc in ['monthly','mensual'] %}selected{% endif %}>Mensual</option>
+            <option value="annual" {% if fc=='annual' %}selected{% endif %}>Anual</option>
+            <option value="quincena_actual" {% if fc in ['quincena_actual','quincental','quincentena','quincenal'] %}selected{% endif %}>Quincena actual</option>
+            <option value="quincena_anterior" {% if fc=='quincena_anterior' %}selected{% endif %}>Quincena anterior</option>
+            <option value="custom" {% if fc=='custom' %}selected{% endif %}>Rango personalizado</option>
+          </select>
+          <div id="fdCustom" class="mt-4 {% if fc!='custom' %}hidden{% endif %}">
+            <p class="mb-2 text-xs font-semibold uppercase text-slate-500">Fechas (YYYY-MM-DD)</p>
+            <div class="flex flex-wrap gap-4">
+              <label class="text-sm text-slate-300">Desde<input type="date" name="start" value="{{ f.get('start') or request.args.get('start','') }}" class="ml-2 rounded-lg border border-white/15 bg-slate-950 px-3 py-2 text-white" /></label>
+              <label class="text-sm text-slate-300">Hasta<input type="date" name="end" value="{{ f.get('end') or request.args.get('end','') }}" class="ml-2 rounded-lg border border-white/15 bg-slate-950 px-3 py-2 text-white" /></label>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-5">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Lotería (vacío = todas)</label>
+            {% set lv = (f.get('lottery') or request.args.get('lottery','') or '') %}
+            <input name="lottery" value="{{ lv }}" list="financeLotList" placeholder="ID numérico, nombre corto ej. Loteka, o todas"
+                   class="mt-2 w-full rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-sm text-white" autocomplete="off" />
+            <datalist id="financeLotList">
+              {% for lt in (D.get('catalogs') or {}).get('lotteries') or [] %}
+              <option value="{{ lt.id }}">{{ lt.nombre }}</option>
+              <option value="{{ lt.nombre }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Cajero</label>
+            <select name="user" class="mt-2 w-full rounded-xl border border-white/15 bg-slate-950 px-4 py-3 text-sm text-white">
+              {% for cj in (D.get('catalogs') or {}).get('cashiers') or [] %}
+              <option value="{{ cj.value }}" {% if ((f.get('user') or '')==cj.value) or ((request.args.get('user') or '')==cj.value) %}selected{% endif %}>{{ cj.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6">
+        <button type="submit" class="rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Aplicar filtros</button>
+        <span class="text-xs text-slate-500">Preset: <strong class="text-slate-300">{{ f.get('period_preset') }}</strong></span>
+        <span class="text-xs text-slate-600">Ventana tabla: {{ f.get('start') }} → {{ f.get('end') }}</span>
+      </div>
+      <p class="mt-4 text-[11px] leading-relaxed text-slate-500">
+        Backend: filtros aplicados solo con WHERE (ticket_lines/tickets/fecha de ticket; premios pagados/fecha_calendario; pagos_cajeros en rango).
+        Tarjetas de quincenas = calendario RD (1–15 y 16–fin de mes). Resultado período tabla = filtros seleccionados.
+      </p>
+    </form>
+
+    <section class="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-2xl border border-emerald-500/25 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-emerald-300/90">Ganancia quincena actual</p>
+        <p class="num mt-2 text-2xl font-black text-emerald-100">RD$ {{ "{:,.2f}".format(qact_tot.get('resultado_neto') or 0) }}</p>
+        <p class="mt-1 text-[11px] text-slate-500">Calendario, mismos filtros lotería/cajero.</p>
+      </article>
+      <article class="rounded-2xl border border-amber-500/25 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-amber-200">Ganancia quincena anterior</p>
+        <p class="num mt-2 text-2xl font-black text-amber-50">RD$ {{ "{:,.2f}".format(qprev_tot.get('resultado_neto') or 0) }}</p>
+      </article>
+      <article class="rounded-2xl border border-sky-500/25 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-sky-200">Ganado global (periodo)</p>
+        <p class="num mt-2 text-2xl font-black text-white">RD$ {{ "{:,.2f}".format(T.get('ganado_global_periodo') or t.get('ganado_global_metric') or 0) }}</p>
+        <p class="mt-1 text-[11px] text-slate-500">Suma de filas con resultado neto &gt; 0.</p>
+      </article>
+      <article class="rounded-2xl border border-rose-500/30 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-rose-200">Perdido global (periodo)</p>
+        <p class="num mt-2 text-2xl font-black text-white">RD$ {{ "{:,.2f}".format(T.get('perdido_global_periodo') or t.get('perdido_global_metric') or 0) }}</p>
+        <p class="mt-1 text-[11px] text-slate-500">Suma de magnitud donde resultado neto &lt; 0.</p>
+      </article>
+
+      <article class="rounded-2xl border border-white/12 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-slate-400">Resultado período (tabla)</p>
+        <p class="num mt-2 text-3xl font-black {% if (t.get('resultado_neto') or 0) >= 0 %}text-emerald-300{% else %}text-rose-300{% endif %}">RD$ {{ "{:,.2f}".format(t.get('resultado_neto') or 0) }}</p>
+      </article>
+      <article class="rounded-2xl border border-white/12 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-emerald-300">Mejor lotería</p>
+        <p class="mt-2 truncate text-lg font-semibold text-white">{{ bestl.nombre if bestl else '—' }}</p>
+        <p class="num text-xs text-slate-400">RD$ {{ "{:,.2f}".format(bestl.resultado_neto or 0) if bestl else '0.00' }}</p>
+      </article>
+      <article class="rounded-2xl border border-white/12 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-rose-300">Peor lotería</p>
+        <p class="mt-2 truncate text-lg font-semibold text-white">{{ worstl.nombre if worstl else '—' }}</p>
+        <p class="num text-xs text-slate-400">RD$ {{ "{:,.2f}".format(worstl.resultado_neto or 0) if worstl else '0.00' }}</p>
+      </article>
+      <article class="rounded-2xl border border-white/12 bg-slate-900/60 p-5">
+        <p class="text-[11px] font-bold uppercase text-slate-300">Mejor cajero / peor</p>
+        <p class="mt-2 text-sm text-emerald-200">{{ bestc.nombre if bestc else '—' }}</p>
+        <p class="num text-[11px] text-slate-500">RD$ {{ "{:,.2f}".format(bestc.resultado_neto or 0) if bestc else '0.00' }}</p>
+        <p class="mt-1 text-sm text-rose-200">{{ worstc.nombre if worstc else '—' }}</p>
+        <p class="num text-[11px] text-slate-500">RD$ {{ "{:,.2f}".format(worstc.resultado_neto or 0) if worstc else '0.00' }}</p>
+      </article>
+    </section>
+
+    {% if rc %}
+    <section class="mt-12 rounded-2xl border border-white/10 bg-slate-900/55 p-5 shadow-xl lg:p-8">
+      <h2 class="text-lg font-bold text-white">Rentabilidad por cajero (periodo filtrado)</h2>
+      <p class="mt-1 text-xs text-slate-500">
+        Consolidado por usuario: ventas − premios = ganancia bruta; ganancia neta = bruta − pagos a cajeros (si pagos = 0, neta = bruta). Despliega cada fila para ver desglose por lotería.
+      </p>
+      <div class="mt-6 space-y-2">
+        {% for c in rc %}
+        <details class="group rounded-xl border border-white/10 bg-slate-950/80 open:border-sky-500/30">
+          <summary class="cursor-pointer list-none px-4 py-3 [&::-webkit-details-marker]:hidden">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-sky-950/80 text-xs font-bold text-sky-200">{{ (c.usuario or '?')[:1]|upper }}</span>
+                <span class="font-semibold text-white">{{ c.usuario or '—' }}</span>
+              </div>
+              <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs sm:text-sm">
+                <span class="text-slate-400">Ventas <span class="num font-semibold text-slate-200">RD$ {{ "{:,.2f}".format(c.ventas or 0) }}</span></span>
+                <span class="text-slate-400">Premios <span class="num font-semibold text-slate-200">RD$ {{ "{:,.2f}".format(c.premios_pagados or 0) }}</span></span>
+                <span class="text-slate-400">Pagos cajero <span class="num font-semibold text-slate-200">RD$ {{ "{:,.2f}".format(c.pagos_cajeros or 0) }}</span></span>
+                <span class="text-slate-400">Bruta <span class="num font-semibold text-emerald-200/90">RD$ {{ "{:,.2f}".format(c.ganancia_bruta or 0) }}</span></span>
+                <span class="text-slate-400">Neta <span class="num font-semibold {% if (c.ganancia_neta or 0) >= 0 %}text-emerald-300{% else %}text-rose-300{% endif %}">RD$ {{ "{:,.2f}".format(c.ganancia_neta or 0) }}</span></span>
+              </div>
+            </div>
+          </summary>
+          <div class="border-t border-white/10 px-4 pb-4 pt-2">
+            <p class="mb-2 text-[11px] font-semibold uppercase text-slate-500">Por lotería (mismo periodo)</p>
+            <div class="overflow-x-auto rounded-lg border border-white/10">
+              <table class="min-w-[640px] w-full border-collapse text-left text-xs">
+                <thead class="bg-slate-950 text-[10px] font-bold uppercase text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2">Lotería</th>
+                    <th class="px-3 py-2 num">Ventas</th>
+                    <th class="px-3 py-2 num">Premios</th>
+                    <th class="px-3 py-2 num">Pagos prorr.</th>
+                    <th class="px-3 py-2 num">G/P neta</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/10">
+                  {% set ukey = c.usuario_key %}
+                  {% for r in D.get('filas_detalle') or [] %}
+                  {% if (r.get('usuario_key') or '') == ukey %}
+                  <tr class="hover:bg-white/5">
+                    <td class="px-3 py-2 text-slate-200">{{ r.loteria_etiqueta or '—' }}</td>
+                    <td class="px-3 py-2 num">RD$ {{ "{:,.2f}".format(r.ventas or 0) }}</td>
+                    <td class="px-3 py-2 num">RD$ {{ "{:,.2f}".format(r.premios_pagados or 0) }}</td>
+                    <td class="px-3 py-2 num">RD$ {{ "{:,.2f}".format(r.pagos_cajeros_prorrateo or 0) }}</td>
+                    <td class="px-3 py-2 num font-medium {% if (r.ganancia_neta_periodo or 0) >= 0 %}text-emerald-300{% else %}text-rose-300{% endif %}">RD$ {{ "{:,.2f}".format(r.ganancia_neta_periodo or 0) }}</td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <div class="mt-12 overflow-x-auto rounded-2xl border border-white/10 shadow-lg">
+      <table class="min-w-[980px] w-full border-collapse text-left text-sm">
+        <thead class="bg-slate-950 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <tr>
+            <th class="px-4 py-3">Lotería</th>
+            <th class="px-4 py-3">Usuario</th>
+            <th class="px-4 py-3 num">Ventas</th>
+            <th class="px-4 py-3 num">Premios pagados</th>
+            <th class="px-4 py-3 num">G / P neta</th>
+            <th class="px-4 py-3 num">Ganadores</th>
+            <th class="px-4 py-3 num">Perdedores</th>
+            <th class="px-4 py-3 num">Rentab. %</th>
+            <th class="px-4 py-3">Quincena / período</th>
+            <th class="px-4 py-3">Fecha cierre</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/10 bg-slate-900/70">
+          {% for r in D.get('filas_detalle') or [] %}
+          <tr class="hover:bg-white/5">
+            <td class="px-4 py-3 whitespace-nowrap text-slate-100">{{ r.loteria_etiqueta or '—' }}</td>
+            <td class="px-4 py-3 whitespace-nowrap text-slate-200">{{ r.usuario or '—' }}</td>
+            <td class="px-4 py-3 num">RD$ {{ "{:,.2f}".format(r.ventas or 0) }}</td>
+            <td class="px-4 py-3 num">RD$ {{ "{:,.2f}".format(r.premios_pagados or 0) }}</td>
+            <td class="px-4 py-3 num font-semibold {% if (r.ganancia_neta_periodo or 0) >= 0 %}text-emerald-300{% else %}text-rose-300{% endif %}">RD$ {{ "{:,.2f}".format(r.ganancia_neta_periodo or 0) }}</td>
+            <td class="px-4 py-3 num">{{ r.tickets_ganadores or 0 }}</td>
+            <td class="px-4 py-3 num">{{ r.tickets_perdedores or 0 }}</td>
+            <td class="px-4 py-3 num">{% if r.rentabilidad_neta_pct is not none %}{{ "{:.2f}".format(r.rentabilidad_neta_pct) }}%{% else %}—{% endif %}</td>
+            <td class="max-w-[200px] px-4 py-3 text-[11px] text-slate-500">{{ r.quincena or '—' }}</td>
+            <td class="px-4 py-3 text-[11px] text-slate-600">{{ r.fecha_cierre or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10" class="px-4 py-10 text-center text-slate-500">Sin líneas para estos filtros.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var p = document.getElementById('fdPeriod');
+      var box = document.getElementById('fdCustom');
+      if (!p || !box) return;
+      function sync() { box.classList.toggle('hidden', (p.value || '') !== 'custom'); }
+      p.addEventListener('change', sync);
+      sync();
+    })();
+  </script>
+</body>
+</html>

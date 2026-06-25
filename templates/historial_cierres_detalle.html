@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle período — cierre #{{ resumen.id }}</title>
+  <style>
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;margin:0;padding:16px;color:#0f172a}
+    .wrap{max-width:1100px;margin:0 auto}
+    .card{background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(15,23,42,.08);padding:20px;border:1px solid #e2e8f0;margin-bottom:18px}
+    h1{font-size:1.25rem;margin:0 0 8px 0}
+    .sub{color:#64748b;font-size:.88rem;margin:0 0 14px 0;line-height:1.45}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:12px}
+    .kv{background:#f8fafc;padding:10px 12px;border-radius:10px;border:1px solid #e2e8f0}
+    .kv span{display:block;font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.02em}
+    .kv strong{font-size:1rem;color:#0f172a}
+    table{width:100%;border-collapse:collapse;font-size:.78rem}
+    th{background:#1e293b;color:#fff;padding:8px 6px;text-align:left}
+    td{padding:7px 6px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+    td.num{text-align:right;font-variant-numeric:tabular-nums}
+    a.btn{display:inline-block;padding:8px 14px;border-radius:10px;background:#002D62;color:#fff;text-decoration:none;font-weight:800;font-size:.88rem}
+    h2{font-size:1rem;margin:0 0 8px 0;color:#0f172a}
+    .cajero-card{border:1px solid #cbd5e1;border-radius:14px;margin:14px 0 18px 0;overflow:hidden;background:#fff}
+    .cajero-head{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#f8fafc;padding:12px 14px;border-bottom:1px solid #e2e8f0}
+    .cajero-head h3{margin:0;color:#0f172a;font-size:1rem}
+    .cajero-totales{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem}
+    .pill{padding:6px 9px;border-radius:999px;background:#e2e8f0;font-weight:800}
+    .pill.ok{background:#dcfce7;color:#166534}.pill.bad{background:#fee2e2;color:#991b1b}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>📊 Detalle del período — corte #{{ resumen.id }}</h1>
+      <p class="sub">Período: límites <strong>desde</strong> (excluido) y <strong>hasta</strong> (incluido) según fechas de <code>cierres_caja</code>. Usuario cierre: {{ resumen.usuario }}.</p>
+      <div class="grid">
+        <div class="kv"><span>Desde (límite)</span><strong>{{ resumen.desde_txt }}</strong></div>
+        <div class="kv"><span>Hasta (cierre)</span><strong>{{ resumen.hasta_txt }}</strong></div>
+        <div class="kv"><span>Ventas</span><strong>RD$ {{ "%.2f"|format(resumen.ventas) }}</strong></div>
+        <div class="kv"><span>Premios pagados</span><strong>RD$ {{ "%.2f"|format(resumen.premios) }}</strong></div>
+        <div class="kv"><span>Total cierre oficial (entregado al admin)</span><strong>RD$ {{ "%.2f"|format(resumen.monto_entregado_corte|default(resumen.entregado)|float) }}</strong></div>
+        <div class="kv"><span>Neto caja período (V−P−E)</span><strong>RD$ {{ "%.2f"|format(resumen.balance_operativo|default(0)|float) }}</strong></div>
+        <div class="kv"><span>Ajustes (informativo)</span><strong>RD$ {{ "%.2f"|format(resumen.ajustes|default(0)|float) }}</strong></div>
+        <div class="kv"><span>Balance real (informativo)</span><strong>RD$ {{ "%.2f"|format(resumen.balance_final|default(0)|float) }}</strong></div>
+      </div>
+      <p style="margin:14px 0 0 0;font-size:.8rem;color:#64748b">El monto que cierra el período contable es solo el <strong>entregado al admin</strong>. Neto, ajustes y balance real son referencia; los saldos pendientes por cajero siguen en operación hasta nueva entrega o ajuste.</p>
+      <p style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <a class="btn" href="/admin/historial_cierres">← Volver al historial</a>
+        <a class="btn" href="/admin/imprimir_cierre/{{ resumen.id }}" target="_blank" rel="noopener" style="background:#15803d">🖨 Imprimir 58mm</a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Detalle por cajero</h2>
+      {% if not grupos_cajero %}
+        <p style="color:#64748b;font-size:.88rem">Sin tickets en este intervalo.</p>
+      {% else %}
+        {% for g in grupos_cajero %}
+        <section class="cajero-card">
+          <div class="cajero-head">
+            <h3>{{ g.cajero }}</h3>
+            <div class="cajero-totales">
+              <span class="pill">Ventas: RD$ {{ "%.2f"|format((g.ventas or 0)|float) }}</span>
+              <span class="pill">Premios: RD$ {{ "%.2f"|format((g.premios or 0)|float) }}</span>
+              <span class="pill {% if (g.balance or 0) >= 0 %}ok{% else %}bad{% endif %}">Balance: RD$ {{ "%.2f"|format((g.balance or 0)|float) }}</span>
+            </div>
+          </div>
+          {% if not g.tickets %}
+            <p style="padding:12px 14px;color:#64748b;font-size:.88rem;margin:0">Sin tickets para este cajero.</p>
+          {% else %}
+          <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>ID</th><th>Creado</th><th class="num">Ventas líneas</th></tr></thead>
+            <tbody>
+              {% for t in g.tickets %}
+              <tr>
+                <td>{{ t.ticket_id }}</td>
+                <td>{{ t.creado_txt }}</td>
+                <td class="num">RD$ {{ "%.2f"|format((t.ventas or 0)|float) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% endif %}
+        </section>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Pagos premios (pagos_premios)</h2>
+      {% if not pagos_premios %}
+        <p style="color:#64748b;font-size:.88rem">Sin registros.</p>
+      {% else %}
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>ID</th><th>Ticket</th><th>Cajero</th><th class="num">Monto</th><th>Fecha</th></tr></thead>
+        <tbody>
+          {% for p in pagos_premios %}
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.ticket_id }}</td>
+            <td>{{ p.cajero }}</td>
+            <td class="num">RD$ {{ "%.2f"|format((p.monto or 0)|float) }}</td>
+            <td>{{ p.fecha }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Pagos (tabla pagos, legacy)</h2>
+      {% if not pagos %}
+        <p style="color:#64748b;font-size:.88rem">Sin registros con ticket en el período.</p>
+      {% else %}
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>ID</th><th>Ticket</th><th class="num">Monto</th><th>Fecha</th><th>Pagado por</th></tr></thead>
+        <tbody>
+          {% for p in pagos %}
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.ticket_id }}</td>
+            <td class="num">RD$ {{ "%.2f"|format((p.monto or 0)|float) }}</td>
+            <td>{{ p.fecha }}</td>
+            <td>{{ p.pagado_por }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Entregas al admin (entregas_cajero)</h2>
+      {% if not movimientos %}
+        <p style="color:#64748b;font-size:.88rem">Sin entregas registradas en el período.</p>
+      {% else %}
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>ID</th><th>Cajero</th><th class="num">Monto</th><th>Fecha</th></tr></thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td>{{ m.id }}</td>
+            <td>{{ m.cajero_id }}</td>
+            <td class="num">RD$ {{ "%.2f"|format((m.monto or 0)|float) }}</td>
+            <td>{{ m.fecha }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% endif %}
+      <p style="margin:10px 0 0 0;color:#64748b;font-size:.78rem">Nota: <code>movimientos_caja</code> se mantiene como legacy histórico y no se usa para cálculos financieros.</p>
+    </div>
+  </div>
+</body>
+</html>

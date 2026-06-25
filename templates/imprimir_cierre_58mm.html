@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cierre de caja — 58mm</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 8px 6px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      background: #fff;
+      color: #000;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ticket {
+      width: 58mm;
+      max-width: 58mm;
+      font-size: 11px;
+      margin: 0 auto;
+    }
+    .ticket h2 {
+      margin: 0 0 4px 0;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .ticket p {
+      margin: 4px 0;
+      line-height: 1.35;
+    }
+    .center { text-align: center; }
+    hr {
+      border: none;
+      border-top: 1px dashed #000;
+      margin: 8px 0;
+    }
+    @media print {
+      body {
+        width: 58mm;
+        max-width: 58mm;
+        min-height: auto;
+        display: block;
+        margin: 0;
+        font-family: monospace;
+      }
+      .ticket {
+        width: 58mm;
+        font-size: 11px;
+      }
+      .center { text-align: center; }
+      hr { border-top: 1px dashed #000; }
+      @page { size: 58mm auto; margin: 2mm; }
+    }
+  </style>
+  <script src="/static/print_ticket_app.js"></script>
+</head>
+<body>
+  <div class="ticket">
+    <h2 class="center">LA QUE NO FALLA</h2>
+    <p class="center">CIERRE DE CAJA</p>
+
+    <hr>
+
+    <p>Fecha: {{ fecha }}</p>
+    <p>Desde: {{ desde }}</p>
+    <p>Hasta: {{ hasta }}</p>
+    <p>Cajero: {{ user_id }}</p>
+
+    <hr>
+
+    <p class="center"><strong>TOTAL ENTREGADO AL ADMIN<br>(CIERRE REAL)</strong></p>
+    <p class="center"><strong>RD$ {{ "%.2f"|format(total_entregado_cierre|default(entregado)|float) }}</strong></p>
+
+    <hr>
+
+    <p class="center"><strong>Referencia del período (informativo)</strong></p>
+    <p>Ventas: RD$ {{ "%.2f"|format(ventas) }}</p>
+    <p>Premios: RD$ {{ "%.2f"|format(premios) }}</p>
+    <p>Entregado (suma mov.): RD$ {{ "%.2f"|format(entregado) }}</p>
+    {% if balance_operativo is defined %}
+    <p>Neto caja (V−P−E): RD$ {{ "%.2f"|format(balance_operativo|default(0)|float) }}</p>
+    {% endif %}
+    {% if ajustes is defined %}
+    <p>Ajustes manuales: RD$ {{ "%.2f"|format(ajustes|default(0)|float) }}</p>
+    {% endif %}
+    {% if balance_final_informativo is defined %}
+    <p>Balance real (neto+ajustes): RD$ {{ "%.2f"|format(balance_final_informativo|default(0)|float) }}</p>
+    {% elif balance is defined %}
+    <p>Balance (ref.): RD$ {{ "%.2f"|format(balance|default(0)|float) }}</p>
+    {% endif %}
+
+    <hr>
+
+    {% if pendientes_cajeros and pendientes_cajeros|length > 0 %}
+    <p class="center"><strong>Saldos por cajero (informativo)</strong></p>
+    {% for p in pendientes_cajeros %}
+    <p>— {{ p.usuario|default('?') }} (id {{ p.cajero_id|default('—') }}){% if p.cierre_manual_override %} · <strong>[AJUSTE ADMIN]</strong>{% endif %}</p>
+    <p style="margin-left:8px">Ventas: RD$ {{ "%.2f"|format((p.display_ventas if p.display_ventas is defined else p.total_vendido or 0)|float) }}</p>
+    <p style="margin-left:8px">Premios: RD$ {{ "%.2f"|format((p.display_premios if p.display_premios is defined else p.premios_pagados or 0)|float) }}</p>
+    <p style="margin-left:8px">Entregado: RD$ {{ "%.2f"|format((p.display_entregado if p.display_entregado is defined else p.entregado_admin or 0)|float) }}</p>
+    <p style="margin-left:8px">Neto V−P−E+aj.: RD$ {{ "%.2f"|format((p.display_neto if p.display_neto is defined else p.balance or 0)|float) }}</p>
+    <p style="margin-left:8px">Ajustes: RD$ {{ "%.2f"|format((p.display_ajustes if p.display_ajustes is defined else p.total_ajustes or 0)|float) }}</p>
+    <p style="margin-left:8px">Balance real: RD$ {{ "%.2f"|format((p.display_balance_final if p.display_balance_final is defined else p.balance_final or 0)|float) }}</p>
+    {% endfor %}
+    <hr>
+    {% endif %}
+
+    {% if grupos_cajero %}
+    <p class="center"><strong>DETALLE POR CAJERO</strong></p>
+    {% for g in grupos_cajero %}
+    <hr>
+    <p><strong>Cajero: {{ g.cajero }}</strong></p>
+    <p>Ventas: RD$ {{ "%.2f"|format((g.ventas or 0)|float) }}</p>
+    <p>Premios: RD$ {{ "%.2f"|format((g.premios or 0)|float) }}</p>
+    <p>Balance: RD$ {{ "%.2f"|format((g.balance or 0)|float) }}</p>
+    <p>Tickets:</p>
+    {% for t in g.tickets %}
+    <p>#{{ t.ticket_id }} {{ t.creado_txt }} RD$ {{ "%.2f"|format((t.ventas or 0)|float) }}</p>
+    {% else %}
+    <p>Sin tickets</p>
+    {% endfor %}
+    {% endfor %}
+
+    <hr>
+    {% endif %}
+
+    <p class="center">Gracias por su trabajo</p>
+  </div>
+
+  <script>
+  function generarTicket() {
+    return ticketPlainFromEl(document.querySelector(".ticket"));
+  }
+  window.onload = function() {
+    imprimir();
+    setTimeout(function() { window.close(); }, 500);
+  };
+  </script>
+</body>
+</html>

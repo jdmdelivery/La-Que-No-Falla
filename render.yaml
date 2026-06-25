@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: banca
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --worker-class gthread --threads 4
+    envVars:
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: DB_POOL_THREADED
+        value: "1"
+      - key: DB_POOL_MAXCONN
+        value: "20"
+      - key: GET_DB_TIMEOUT_SEC
+        value: "3"
+      - key: HEALTH_DB_CACHE_SEC
+        value: "30"
+      - key: DISABLE_BACKGROUND_DB_INIT
+        value: "0"
+      - key: ADMIN_FAST_SHELL
+        value: "1"
+      - key: GANADORES_LAZY_RESULTADOS
+        value: "1"
+      - key: DASHBOARD_CACHE_TTL
+        value: "45"
+      - key: DASHBOARD_SNAPSHOT_CACHE_TTL
+        value: "45"
+      - key: DASHBOARD_CACHE_TTL_STATS
+        value: "45"
+      - key: DASHBOARD_CACHE_TTL_LOTTERIES
+        value: "60"
+      - key: DASHBOARD_CACHE_TTL_RESULTADOS
+        value: "45"
+      - key: DASHBOARD_CACHE_TTL_PENDIENTES
+        value: "30"
+      - key: BACKUP_ON_INIT_DB
+        value: "0"
+      - key: BACKUP_MIN_INTERVAL_SEC
+        value: "3600"
+      - key: STARTUP_SLOW_MS
+        value: "15000"
+      - key: CLOSE_BEFORE_DRAW_MINUTES
+        value: "5"
+      - key: JUGADA_ELIMINAR_MAX_SEGUNDOS
+        value: "300"
+      - key: DEBUG_ALL_LOTTERIES_OPEN
+        value: "false"
+      - key: FORCE_LOTERIAS_OPEN
+        value: "false"
+      - key: PYTHON_VERSION
+        value: "3.12.7"

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ganancia y perdida — {{ titulo_corto }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #fff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --green: #15803d;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
+      --amber-bg: #ffedd5;
+      --navy: #002D62;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px 16px 40px; color: var(--text); }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: 1.45rem; font-weight: 900; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 16px; line-height: 1.5; max-width: 760px; }
+    .alert-neg {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fecaca; border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;
+      color: #7f1d1d; font-weight: 600; font-size: 0.92rem; line-height: 1.45;
+    }
+    .alert-neg strong { display: block; font-size: 0.95rem; margin-bottom: 4px; }
+    .empty-state {
+      text-align: center; padding: 40px 24px 36px; background: var(--card); border-radius: 16px;
+      border: 2px dashed #cbd5e1; margin-bottom: 24px;
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; line-height: 1; }
+    .empty-state h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--text); }
+    .empty-state p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
+    .tabs a {
+      padding: 10px 18px; border-radius: 10px; font-weight: 800; text-decoration: none; font-size: 0.88rem;
+      border: 2px solid #e2e8f0; background: #fff; color: var(--navy);
+    }
+    .tabs a.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .export-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+    .export-bar a, .export-bar span.label {
+      padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; text-decoration: none;
+      border: 1px solid #e2e8f0; background: #fff; color: var(--navy);
+    }
+    .export-bar a:hover { background: #f1f5f9; }
+    .export-bar span.label { color: var(--muted); border: none; background: transparent; padding-left: 0; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .card {
+      background: var(--card); border-radius: 14px; padding: 18px 16px; border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 36px rgba(15, 23, 42, 0.08);
+    }
+    .card .lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+    .card .val { font-size: 1.42rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .card .hint { font-size: 0.72rem; color: var(--muted); margin-top: 8px; line-height: 1.35; }
+    .card.gain .val { color: var(--green); }
+    .card.loss .val { color: var(--red); }
+    .card.net .val { color: var(--text); }
+    .card.net.positive .val { color: var(--green); }
+    .card.net.negative .val { color: var(--red); }
+    .card.soft { background: #f8fafc; }
+    .card.rent .val { color: var(--navy); font-size: 1.25rem; }
+    .chart-card {
+      background: var(--card); border-radius: 16px; padding: 20px 18px 28px; border: 1px solid #e2e8f0;
+      margin-bottom: 24px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+    }
+    .chart-card h2 { font-size: 1rem; margin: 0 0 16px; color: var(--navy); }
+    .chart-wrap { position: relative; height: 320px; max-height: 55vh; }
+    @media (max-width: 640px) { .chart-wrap { height: 260px; } }
+    .table-card {
+      background: var(--card); border-radius: 16px; padding: 20px 18px; border: 1px solid #e2e8f0;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08); overflow-x: auto;
+    }
+    .table-card h2 { font-size: 1rem; margin: 0 0 14px; color: var(--navy); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { background: var(--text); color: #fff; padding: 10px 8px; font-weight: 800; text-align: center; }
+    th:first-child { text-align: left; }
+    td { padding: 10px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; vertical-align: middle; }
+    td:first-child { text-align: left; font-weight: 600; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.g { color: var(--green); font-weight: 700; }
+    td.p { color: var(--red); font-weight: 700; }
+    .foot { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .foot a {
+      display: inline-block; padding: 10px 18px; background: var(--navy); color: #fff !important;
+      border-radius: 10px; font-weight: 800; text-decoration: none; font-size: 0.85rem;
+    }
+    .flash { padding: 12px 14px; border-radius: 10px; margin: 0 0 16px; font-weight: 600; text-align: center; }
+    .flash.err { background: var(--red-bg); color: #991b1b; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Ganancia y perdida</h1>
+    <p class="sub">
+      Fuente: <code>cierres_caja</code> (solo <code>es_corte_periodo = 1</code>). Agrupacion por
+      <strong><code>cerrado_en</code></strong> (si no existe, se usa <code>fecha</code>).
+      <strong>Resultado</strong> = ventas &minus; premios. Orden: periodo mas reciente primero; la grafica muestra el tiempo de forma cronologica.
+    </p>
+
+    {% for cat, msg in get_flashed_messages(with_categories=true) %}
+    <div class="flash {% if cat == 'error' %}err{% endif %}">{{ msg }}</div>
+    {% endfor %}
+
+    {% if totales.get('resultado_neto', 0) < 0 %}
+    <div class="alert-neg" role="alert">
+      <div>
+        <strong>Atencion: resultado neto negativo</strong>
+        La suma de los periodos muestra mas premios que ventas en los cierres registrados. Revise el detalle y los cortes de caja.
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="tabs">
+      <a href="/reporte/ganancias/mensual" class="{% if vista == 'mensual' %}active{% endif %}">Mensual</a>
+      <a href="/reporte/ganancias/anual" class="{% if vista == 'anual' %}active{% endif %}">Anual</a>
+      {% if vista == 'mensual' %}
+      <div class="export-bar">
+        <span class="label">Exportar</span>
+        <a href="/reporte/ganancias/mensual/export?format=csv">CSV</a>
+        <a href="/reporte/ganancias/mensual/export?format=xls">Excel</a>
+        <a href="/reporte/ganancias/mensual/export?format=pdf">PDF</a>
+      </div>
+      {% else %}
+      <div class="export-bar">
+        <span class="label">Exportar</span>
+        <a href="/reporte/ganancias/anual/export?format=csv">CSV</a>
+        <a href="/reporte/ganancias/anual/export?format=xls">Excel</a>
+        <a href="/reporte/ganancias/anual/export?format=pdf">PDF</a>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if not filas %}
+    <div class="empty-state">
+      <div class="icon" aria-hidden="true">&#128203;</div>
+      <h2>Aun no hay datos de ganancia / perdida</h2>
+      <p>
+        Cuando registre cortes de periodo con el boton <strong>Cerrar y generar reporte</strong> en el reporte operativo,
+        los snapshots en <code>cierres_caja</code> alimentaran este dashboard. Los montos deben incluir
+        <code>total_vendido</code> y <code>premios_pagados</code>.
+      </p>
+    </div>
+    {% else %}
+
+    <div class="cards">
+      <div class="card gain">
+        <div class="lbl">Ganancia total (periodos)</div>
+        <div class="val">RD$ {{ "{:,.2f}".format(totales.get('ganancia_total', 0)) }}</div>
+      </div>
+      <div class="card loss">
+        <div class="lbl">Perdida total (periodos)</div>
+        <div class="val">RD$ {{ "{:,.2f}".format(totales.get('perdida_total', 0)) }}</div>
+      </div>
+      <div class="card net {% if totales.get('resultado_neto', 0) >= 0 %}positive{% else %}negative{% endif %}">
+        <div class="lbl">Resultado neto</div>
+        <div class="val">RD$ {{ "{:,.2f}".format(totales.get('resultado_neto', 0)) }}</div>
+      </div>
+      <div class="card rent">
+        <div class="lbl">Rentabilidad global</div>
+        <div class="val">
+          {% if totales.get('rentabilidad_pct') is not none %}
+            {{ "{:.2f}".format(totales.get('rentabilidad_pct')) }}%
+          {% else %}
+            N/A
+          {% endif %}
+        </div>
+        <div class="hint">(resultado neto / ventas acumuladas) cuando ventas &gt; 0</div>
+      </div>
+      <div class="card soft">
+        <div class="lbl">Ventas acumuladas (cierres)</div>
+        <div class="val" style="font-size:1.1rem;color:var(--navy)">RD$ {{ "{:,.2f}".format(totales.get('ventas', 0)) }}</div>
+      </div>
+      <div class="card soft">
+        <div class="lbl">Premios acumulados (cierres)</div>
+        <div class="val" style="font-size:1.1rem;color:var(--navy)">RD$ {{ "{:,.2f}".format(totales.get('premios', 0)) }}</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h2>Resultado por periodo (verde / rojo, cronologico)</h2>
+      <div class="chart-wrap">
+        <canvas id="gpChart" aria-label="Grafica de resultado"></canvas>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h2>Detalle {{ titulo_corto|lower }} (mas reciente arriba)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Periodo</th>
+            <th>Ventas</th>
+            <th>Premios</th>
+            <th>Resultado</th>
+            <th>Rentab. %</th>
+            <th>Ganancia</th>
+            <th>Perdida</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in filas %}
+          <tr>
+            <td>{{ r.periodo }}</td>
+            <td class="num">RD$ {{ "{:,.2f}".format(r.ventas) }}</td>
+            <td class="num">RD$ {{ "{:,.2f}".format(r.premios) }}</td>
+            <td class="num {% if r.resultado >= 0 %}g{% else %}p{% endif %}">RD$ {{ "{:,.2f}".format(r.resultado) }}</td>
+            <td class="num">
+              {% if r.rentabilidad_pct is not none %}
+                {{ "{:.2f}".format(r.rentabilidad_pct) }}%
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <td class="num g">{% if r.ganancia > 0 %}RD$ {{ "{:,.2f}".format(r.ganancia) }}{% else %}-{% endif %}</td>
+            <td class="num p">{% if r.perdida > 0 %}RD$ {{ "{:,.2f}".format(r.perdida) }}{% else %}-{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="foot">
+      <a href="/reporte">Volver al reporte del periodo</a>
+      <a href="/admin" style="background:#334155">Panel admin</a>
+    </div>
+  </div>
+
+  <script id="filas-chart-data" type="application/json">{{ filas_chart | tojson }}</script>
+  <script>
+(function(){
+  var el = document.getElementById('gpChart');
+  if (!el || typeof Chart === 'undefined') return;
+  var raw = document.getElementById('filas-chart-data');
+  var data = [];
+  try { data = JSON.parse(raw ? raw.textContent : '[]'); } catch (e) { data = []; }
+  if (!data.length) {
+    el.parentNode.innerHTML = '<p style="color:#64748b;text-align:center;padding:24px">Sin datos para graficar.</p>';
+    return;
+  }
+  var labels = data.map(function(x){ return x.periodo; });
+  var vals = data.map(function(x){ return x.resultado; });
+  var colors = vals.map(function(v){
+    return v >= 0 ? 'rgba(22, 163, 74, 0.88)' : 'rgba(220, 38, 38, 0.88)';
+  });
+  var borders = vals.map(function(v){
+    return v >= 0 ? 'rgb(21, 128, 61)' : 'rgb(185, 28, 28)';
+  });
+  new Chart(el, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Resultado',
+        data: vals,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var v = ctx.parsed.y;
+              return 'RD$ ' + (v == null ? '0' : Number(v).toFixed(2));
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            callback: function(v) { return 'RD$ ' + v; }
+          },
+          grid: { color: 'rgba(148, 163, 184, 0.25)' }
+        },
+        x: {
+          grid: { display: false }
+        }
+      }
+    }
+  });
+})();
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrega de Caja - 58mm</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: monospace;
+            font-size: 12px;
+            width: 58mm;
+            margin: 0;
+            padding: 8px;
+            line-height: 1.3;
+        }
+        .ticket {
+            width: 58mm;
+            max-width: 58mm;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .ticket h1, .ticket h2 { margin: 4px 0; font-size: 12px; }
+        .ticket .line { border-bottom: 1px dashed #333; margin: 6px 0; }
+        .ticket .row { display: flex; justify-content: space-between; margin: 2px 0; }
+        .ticket .firmas { margin-top: 12px; text-align: left; }
+        .ticket .firmas div { margin: 8px 0; }
+        @media print {
+            @page { size: 58mm auto; margin: 0; }
+            body { width: 58mm; font-size: 12px; margin: 0; padding: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket" id="recibo-58mm">
+        <h1>LA QUE NO FALLA</h1>
+        <h2>ENTREGA DE CAJA</h2>
+        <div class="line"></div>
+
+        <div class="row"><span>Cajero:</span><span>{{ cajero }}</span></div>
+        <div class="row"><span>Fecha:</span><span>{{ fecha }}</span></div>
+        <div class="line"></div>
+
+        <div class="row"><span>Ventas:</span><span>RD$ {{ ventas_fmt }}</span></div>
+        <div class="row"><span>Premios:</span><span>RD$ {{ premios_fmt }}</span></div>
+        <div class="line"></div>
+
+        <p style="margin:6px 0;font-weight:bold">ENTREGADO:</p>
+        <p style="margin:2px 0;font-size:14px;font-weight:bold">RD$ {{ ganancia_fmt }}</p>
+        <div class="line"></div>
+
+        <div class="row"><span>Administrador:</span><span>{{ admin }}</span></div>
+        <div class="firmas">
+            <div>Firma Cajero: __________</div>
+            <div>Firma Admin: __________</div>
+        </div>
+        <div class="line"></div>
+        <p style="margin:8px 0 0 0">Gracias</p>
+    </div>
+
+    <div class="no-print" style="margin-top:16px;text-align:center">
+        <button onclick="window.print()" style="padding:10px 20px;background:#002D62;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold">🖨 Imprimir</button>
+        <br><br>
+        <a href="/admin/banco_cajeros" style="color:#002D62;font-weight:bold">← Volver a Banco Cajeros</a>
+    </div>
+
+    <script>
+        (function() {
+            if (window.location.search.indexOf('autoprint=1') !== -1) {
+                window.onload = function() { window.print(); };
+            }
+        })();
+    </script>
+</body>
+</html>

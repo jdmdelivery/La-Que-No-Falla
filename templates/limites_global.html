@@ -1,0 +1,1689 @@
+<style>
+:root{
+  --bg:#070d1b;
+  --card:#10192d;
+  --card-soft:#0b1324;
+  --border:#2e4368;
+  --text:#f8fafc;
+  --muted:#cbd5e1;
+  --blue:#3b82f6;
+  --green:#22c55e;
+  --danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.lim-wrap{max-width:980px;margin:0 auto;padding:18px 14px 48px}
+.lim-title{margin:0 0 6px;font-size:1.55rem;font-weight:900;color:#f1f5f9}
+.lim-sub{margin:0 0 14px;color:#cbd5e1;font-size:14px;line-height:1.5}
+.lim-card{background:linear-gradient(180deg,var(--card),#0f172a);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;color:var(--text)}
+.lim-card h2{margin:0 0 12px;font-size:1.05rem;color:#e2e8f0;font-weight:800}
+.lim-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lim-field{min-width:0}
+.lim-field label{display:block;font-size:13px;color:#e2e8f0;margin-bottom:5px;font-weight:700}
+.lim-field input,.lim-field select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #3b4f74;background:var(--card-soft);color:#f8fafc;font-size:14px}
+.lim-field input::placeholder{color:#94a3b8}
+.lim-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.lim-btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;font-size:13px;cursor:pointer}
+.lim-btn-primary{background:linear-gradient(135deg,#2563eb,var(--blue));color:#fff}
+.lim-btn-secondary{background:transparent;border:1px solid #3b82f6;color:#93c5fd}
+.lim-btn-danger{background:#991b1b;color:#fff}
+.lim-btn-warn{background:#78350f;color:#fef3c7;border:1px solid #b45309}
+.lim-btn-success{background:#14532d;color:#dcfce7;border:1px solid #22c55e}
+.lim-btn:disabled{opacity:.55;cursor:not-allowed}
+.lim-table-wrap{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:10px;background:#0b1324}
+table{width:100%;border-collapse:collapse;font-size:14px;color:#f1f5f9}
+th,td{padding:10px 9px;border-bottom:1px solid rgba(148,163,184,.22);text-align:left;vertical-align:middle}
+th{position:sticky;top:0;background:#0f1a31;color:#e2e8f0;font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;z-index:1}
+td b{color:#fff}
+.lim-muted{color:#94a3b8;font-size:13px;line-height:1.45}
+.lim-flash{padding:10px 12px;border-radius:10px;margin-bottom:12px;font-weight:700;font-size:13px}
+.lim-flash.ok{background:#14532d;color:#dcfce7}
+.lim-flash.err{background:#7f1d1d;color:#fee2e2}
+.hidden{display:none!important}
+.lim-pag{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.lim-pag-info{font-size:12px;color:#93a4c7}
+.lim-toast-wrap{position:fixed;top:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.lim-toast{min-width:260px;max-width:380px;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;box-shadow:0 10px 20px rgba(2,8,23,.45);border:1px solid transparent;opacity:0;transform:translateY(-6px);transition:opacity .2s ease,transform .2s ease}
+.lim-toast.show{opacity:1;transform:translateY(0)}
+.lim-toast.ok{background:#14532d;color:#dcfce7;border-color:#22c55e}
+.lim-toast.err{background:#7f1d1d;color:#fee2e2;border-color:#ef4444}
+.lim-btn .lim-btn-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;margin-right:8px;vertical-align:-2px;animation:limSpin .7s linear infinite}
+@keyframes limSpin{to{transform:rotate(360deg)}}
+.nc-progress-wrap{margin-top:10px;padding:10px;border-radius:10px;border:1px solid #355a93;background:#0f213f}
+.nc-progress-bar{height:12px;border-radius:999px;background:#0b1730;border:1px solid #2b4a7a;overflow:hidden}
+.nc-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#60a5fa);transition:width .25s ease}
+.nc-progress-text{margin-top:8px;font-size:12px;color:#dbeafe;font-weight:700}
+.nc-progress-lots{margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px}
+.nc-progress-lot{font-size:12px;color:#bfdbfe}
+.lim-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.lim-tab{border:1px solid #2f4875;background:#0b1730;color:#f1f5f9;border-radius:999px;padding:9px 14px;font-size:13px;font-weight:800;cursor:pointer;line-height:1.3}
+.lim-tab.active{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border-color:#60a5fa;box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.lim-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800}
+.lim-pill.rojo{background:#7f1d1d;color:#fee2e2}
+.lim-pill.amarillo{background:#78350f;color:#fef3c7}
+.lim-pill.verde{background:#14532d;color:#dcfce7}
+.lim-pill.critico{background:#450a0a;color:#fecaca;border:1px solid #ef4444}
+.nc-banca-stack{font-size:12px;line-height:1.5;min-width:170px;color:#e2e8f0}
+.nc-banca-line{color:#f1f5f9;font-weight:700}
+.nc-banca-line .lim-pill{margin-left:4px;padding:2px 8px;font-size:10px}
+.nc-banca-empty{color:#64748b;font-size:11px;font-style:italic}
+.lim-state{font-weight:800}
+.lim-state.bloq{color:#fca5a5}
+.lim-state.act{color:#86efac}
+.nc-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.nc-card{border:1px solid #29416b;background:#0b1730;border-radius:12px;padding:12px}
+.nc-card h3{margin:0 0 8px;font-size:13px;color:#bfdbfe}
+.nc-mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.nc-mini-table th,.nc-mini-table td{padding:6px 4px;border-bottom:1px solid rgba(148,163,184,.18);text-align:left}
+.nc-mini-table th{color:#93c5fd;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.nc-chart{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.nc-chart-row{display:grid;grid-template-columns:42px 1fr 32px;align-items:center;gap:8px}
+.nc-chart-label{font-size:12px;color:#cbd5e1;font-weight:700}
+.nc-chart-bar-wrap{height:11px;background:#0f213f;border-radius:999px;overflow:hidden;border:1px solid #2b4a7a}
+.nc-chart-bar{height:100%;background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.nc-chart-val{font-size:11px;color:#dbeafe;font-weight:700;text-align:right}
+.nc-modal{position:fixed;inset:0;background:rgba(2,6,23,.72);display:flex;align-items:center;justify-content:center;z-index:10020;padding:12px}
+.nc-modal-box{width:min(560px,100%);max-height:80vh;overflow:auto;background:#0b1730;border:1px solid #2b4a7a;border-radius:14px;padding:14px}
+.nc-modal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.nc-modal-title{font-size:15px;font-weight:900;color:#e2e8f0}
+.nc-dates{display:flex;flex-wrap:wrap;gap:6px}
+.nc-date-chip{padding:5px 8px;border-radius:999px;background:#172b4d;border:1px solid #355a93;color:#dbeafe;font-size:12px;font-weight:700}
+.nc-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 8px}
+.nc-kpi{position:relative;overflow:hidden;border-radius:14px;padding:12px;border:1px solid rgba(148,163,184,.28);background:linear-gradient(145deg,#10213f,#0b1730);box-shadow:0 10px 24px rgba(2,6,23,.35);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+.nc-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(2,6,23,.45)}
+.nc-kpi-title{font-size:13px;font-weight:800;color:#f1f5f9;letter-spacing:.03em}
+.nc-kpi-val{font-size:28px;line-height:1.05;font-weight:900;color:#fff;margin-top:6px}
+.nc-kpi-sub{font-size:12px;color:#cbd5e1}
+.nc-kpi.hot{border-color:rgba(239,68,68,.4);background:linear-gradient(145deg,#3a1a27,#18172f)}
+.nc-kpi.trend{border-color:rgba(245,158,11,.45);background:linear-gradient(145deg,#3a2810,#1b1d33)}
+.nc-kpi.cold{border-color:rgba(56,189,248,.45);background:linear-gradient(145deg,#12293c,#141b38)}
+.nc-kpi.blocked{border-color:rgba(99,102,241,.45);background:linear-gradient(145deg,#20245a,#141b38)}
+.nc-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.nc-trend-up{color:#86efac;font-weight:900}
+@media(max-width:760px){
+  .lim-grid{grid-template-columns:1fr}
+  .lim-actions .lim-btn{flex:1;min-height:48px;width:100%}
+  .lim-toast-wrap{left:10px;right:10px;top:10px}
+  .lim-toast{min-width:unset;max-width:unset}
+  .nc-grid-3{grid-template-columns:1fr}
+  .nc-grid-4{grid-template-columns:1fr}
+  .nc-kpi-grid{grid-template-columns:1fr 1fr}
+  .nc-progress-lots{grid-template-columns:1fr}
+  .lim-table-wrap{max-height:none;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .lim-table-wrap table{min-width:520px}
+  .lim-field input,.lim-field select{min-height:48px;font-size:16px}
+  .lim-tab{min-height:44px;padding:10px 14px}
+}
+@media(max-width:390px){
+  .lim-wrap{padding:10px 8px 72px}
+  .lim-title{font-size:1.25rem}
+  .nc-kpi-grid{grid-template-columns:1fr}
+  .lim-table-wrap table{min-width:480px}
+}
+</style>
+
+<div class="lim-wrap">
+  <h1 class="lim-title">Control de límites</h1>
+  <p class="lim-sub">Formulario simplificado para configurar límites sin tocar lógica interna.</p>
+  <div id="flashBox"></div>
+  <div id="limToastWrap" class="lim-toast-wrap"></div>
+
+  <section class="lim-card hidden" id="limitesAlertasRiesgoPanel" style="border-color:#f97316">
+    <h2>🔔 Alertas inteligentes — revisar hoy</h2>
+    <p class="lim-sub" style="margin-bottom:10px">Solo riesgo <strong>alto</strong>. Tras recalcular historial o ventas altas — bloquear/limitar manualmente.</p>
+    <div id="limitesAlertasRiesgoList"></div>
+  </section>
+
+  <section class="lim-card">
+    <h2>Nuevo límite</h2>
+    <div class="lim-grid">
+      <div class="lim-field">
+        <label for="fBanca">Cajero / Banca</label>
+        <select id="fBanca">
+          {% for b in bancas %}
+          <option value="{{ b.id }}">{{ b.username }} ({{ b.role }}){% if b.admin_nombre %} · {{ b.admin_nombre }}{% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="fLottery">Lotería</label>
+        <select id="fLottery">
+          <option value="__TODAS__">Todas las loterías</option>
+          {% for lot in lottery_names %}
+          <option value="{{ lot }}">{{ lot }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="fDraw">Sorteo / Horario</label>
+        <select id="fDraw">
+          <option value="__TODOS__">Todos los sorteos</option>
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="fNumSelect">Número</label>
+        <select id="fNumSelect">
+          <option value="__TODOS_NUMEROS__">Todos los números (00-99)</option>
+          {% for i in range(100) %}
+          <option value="{{ "%02d"|format(i) }}">{{ "%02d"|format(i) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="fLim">Límite RD$</label>
+        <input id="fLim" type="number" min="0" step="0.01" value="{{ limite_default }}" placeholder="0.00">
+      </div>
+    </div>
+
+    <input type="hidden" id="fCajero" value="0">
+    <input type="hidden" id="fNum" value="">
+    <input type="hidden" id="fFecha" value="">
+    <input type="checkbox" id="fTodosNumeros" class="hidden" checked>
+
+    <div class="lim-actions">
+      <button type="button" id="btnGuardarLim" class="lim-btn lim-btn-primary">Guardar límite</button>
+      <button type="button" id="btnVerCajero" class="lim-btn lim-btn-secondary">Ver límites guardados</button>
+      <a href="/admin" class="lim-btn lim-btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center">Volver al admin</a>
+    </div>
+  </section>
+
+  <section class="lim-card hidden" id="panelCajero">
+    <h2>Límites guardados</h2>
+    <div class="lim-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Cajero</th>
+            <th>Lotería</th>
+            <th>Sorteo</th>
+            <th>Número</th>
+            <th>Límite</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="cTblBody">
+          <tr><td colspan="6" class="lim-muted">Pulse «Ver límites guardados»</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="lim-pag">
+      <button type="button" id="cBtnPrev" class="lim-btn lim-btn-secondary" style="padding:7px 10px">← Anterior</button>
+      <span id="cPagInfo" class="lim-pag-info">—</span>
+      <button type="button" id="cBtnNext" class="lim-btn lim-btn-secondary" style="padding:7px 10px">Siguiente →</button>
+    </div>
+  </section>
+
+  <section class="lim-card">
+    <h2>Números calientes</h2>
+    <p class="lim-sub" style="margin-bottom:10px">
+      Detección automática por historial real de resultados (7/15/30 días y 100 sorteos).
+    </p>
+    <div class="lim-grid">
+      <div class="lim-field">
+        <label for="ncAuto">Bloqueo/limitación automática</label>
+        <select id="ncAuto">
+          <option value="1">Activado</option>
+          <option value="0">Desactivado</option>
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="ncDias">Días base de análisis</label>
+        <select id="ncDias">
+          <option value="7">7 días</option>
+          <option value="15">15 días</option>
+          <option value="30">30 días</option>
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="ncRiesgo">Riesgo mínimo para aplicar límite</label>
+        <select id="ncRiesgo">
+          <option value="alto">Alto</option>
+          <option value="medio">Medio</option>
+          <option value="bajo">Bajo</option>
+        </select>
+      </div>
+      <div class="lim-field">
+        <label for="ncLimAlto">Límite riesgo alto (RD$)</label>
+        <input id="ncLimAlto" type="number" min="0" step="0.01" value="0">
+      </div>
+      <div class="lim-field">
+        <label for="ncLimMedio">Límite riesgo medio (RD$)</label>
+        <input id="ncLimMedio" type="number" min="0" step="0.01" value="50">
+      </div>
+      <div class="lim-field">
+        <label for="ncLimBajo">Límite riesgo bajo (RD$)</label>
+        <input id="ncLimBajo" type="number" min="0" step="0.01" value="100">
+      </div>
+    </div>
+    <div class="lim-actions">
+      <button type="button" id="btnNcGuardar" class="lim-btn lim-btn-primary">Guardar configuración</button>
+      <button type="button" id="btnNcRecalcular" class="lim-btn lim-btn-secondary">Recalcular ahora</button>
+      <button type="button" id="btnNcImportar" class="lim-btn lim-btn-secondary">Importar resultados y recalcular</button>
+      <button type="button" id="btnNcImportarFull" class="lim-btn lim-btn-primary">Actualizar historial completo</button>
+      <button type="button" id="btnNcBloqAltos" class="lim-btn lim-btn-danger">🔴 Bloquear todos Alto</button>
+      <button type="button" id="btnNcBloqMedios" class="lim-btn lim-btn-warn">🟡 Bloquear todos Medio</button>
+      <button type="button" id="btnNcDesbloqTodos" class="lim-btn lim-btn-success">🟢 Desbloquear todos</button>
+      <button type="button" id="btnNcVerBloq" class="lim-btn lim-btn-secondary">Ver bloqueados</button>
+    </div>
+    <p id="ncImportInfo" class="lim-sub" style="margin:8px 0 0 0;color:#93c5fd"></p>
+    <p id="ncHistHint" class="lim-sub" style="margin:2px 0 4px 0;color:#bfdbfe"></p>
+    <div id="ncFullProgressWrap" class="nc-progress-wrap hidden">
+      <div class="nc-progress-bar"><div id="ncFullProgressFill" class="nc-progress-fill"></div></div>
+      <div id="ncFullProgressText" class="nc-progress-text">Progreso total: 0%</div>
+      <div id="ncFullProgressLots" class="nc-progress-lots"></div>
+    </div>
+
+    <div class="nc-kpi-grid">
+      <div class="nc-kpi hot" data-kpi-tab="mas_calientes">
+        <div class="nc-kpi-title">🔥 NÚMEROS CALIENTES</div>
+        <div id="kpiHotVal" class="nc-kpi-val">0</div>
+        <div class="nc-kpi-sub">números detectados</div>
+      </div>
+      <div class="nc-kpi trend" data-kpi-tab="tendencia">
+        <div class="nc-kpi-title">📈 EN TENDENCIA</div>
+        <div id="kpiTrendVal" class="nc-kpi-val">0</div>
+        <div class="nc-kpi-sub">números detectados</div>
+      </div>
+      <div class="nc-kpi cold" data-kpi-tab="frios">
+        <div class="nc-kpi-title">❄️ NÚMEROS FRÍOS</div>
+        <div id="kpiColdVal" class="nc-kpi-val">0</div>
+        <div class="nc-kpi-sub">números detectados</div>
+      </div>
+      <div class="nc-kpi blocked" data-kpi-tab="bloqueados">
+        <div class="nc-kpi-title">🚫 BLOQUEADOS</div>
+        <div id="kpiBlockedVal" class="nc-kpi-val">0</div>
+        <div class="nc-kpi-sub">bloqueados actualmente</div>
+      </div>
+    </div>
+
+    <div class="lim-tabs">
+      <button type="button" class="lim-tab active" data-nc-tab="mas_calientes">🔥 Más calientes (0)</button>
+      <button type="button" class="lim-tab" data-nc-tab="tendencia">📈 Tendencia (0)</button>
+      <button type="button" class="lim-tab" data-nc-tab="frios">❄️ Fríos (0)</button>
+      <button type="button" class="lim-tab" data-nc-tab="riesgo">🚨 Riesgo por Lotería (0)</button>
+      <button type="button" class="lim-tab" data-nc-tab="bloqueados">🚫 Bloqueados (0)</button>
+      <button type="button" class="lim-tab" data-nc-tab="estadisticas">📊 Estadísticas</button>
+    </div>
+
+    <div id="ncPaneTable">
+      <div class="lim-table-wrap" style="margin-top:12px;max-height:360px">
+        <table>
+          <thead>
+            <tr id="ncTableHeadRow">
+              <th>Número</th>
+              <th>Lotería</th>
+              <th>Sorteo</th>
+              <th>Veces salió</th>
+              <th>Última vez</th>
+              <th>Semáforo</th>
+              <th>Estado</th>
+              <th>Límite automático</th>
+              <th>Salió</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="ncTblBody">
+            <tr><td colspan="10" class="lim-muted">Seleccione una pestaña para ver los números…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="lim-pag">
+        <button type="button" id="ncBtnPrev" class="lim-btn lim-btn-secondary" style="padding:7px 10px">← Anterior</button>
+        <span id="ncPagInfo" class="lim-pag-info">—</span>
+        <button type="button" id="ncBtnNext" class="lim-btn lim-btn-secondary" style="padding:7px 10px">Siguiente →</button>
+      </div>
+    </div>
+
+    <div id="ncPaneTrend" class="hidden">
+      <div class="nc-grid-3">
+        <div class="nc-card">
+          <h3>Top 10 más frecuentes</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Número</th><th>Frecuencia</th><th>Última</th></tr></thead>
+            <tbody id="ncTopFreqBody"><tr><td colspan="3" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="nc-card">
+          <h3>Top 10 más recientes</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Número</th><th>Última</th><th>Veces</th></tr></thead>
+            <tbody id="ncTopRecentBody"><tr><td colspan="3" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="nc-card">
+          <h3>Top 10 repetidos</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Número</th><th>Repetido</th><th>Última</th></tr></thead>
+            <tbody id="ncTopRepeatedBody"><tr><td colspan="3" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="ncPaneStats" class="hidden">
+      <div class="nc-grid-3">
+        <div class="nc-card">
+          <h3>Top 10 más calientes</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Número</th><th>Veces</th><th>Lotería</th></tr></thead>
+            <tbody id="ncTopHotBody"><tr><td colspan="3" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="nc-card">
+          <h3>Top 10 más fríos</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Número</th><th>Sin salir</th><th>Lotería</th></tr></thead>
+            <tbody id="ncTopColdBody"><tr><td colspan="3" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="nc-card">
+          <h3>Top 10 en tendencia</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Número</th><th>↑</th><th>Lotería</th></tr></thead>
+            <tbody id="ncTopTrendBody"><tr><td colspan="3" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="nc-grid-4">
+        <div class="nc-card">
+          <h3>🔥 Calientes por lotería</h3>
+          <div id="ncChartHotLottery" class="nc-chart"></div>
+        </div>
+        <div class="nc-card">
+          <h3>📈 Tendencia últimos 30 días</h3>
+          <div id="ncChartTrend30" class="nc-chart"></div>
+        </div>
+        <div class="nc-card">
+          <h3>❄️ Fríos por lotería</h3>
+          <div id="ncChartColdLottery" class="nc-chart"></div>
+        </div>
+        <div class="nc-card">
+          <h3>🚫 Bloqueados por lotería</h3>
+          <div id="ncChartBlockedLottery" class="nc-chart"></div>
+        </div>
+      </div>
+      <div class="nc-grid-3">
+        <div class="nc-card">
+          <h3>Estadísticas por lotería</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Lotería</th><th>Resultados históricos</th></tr></thead>
+            <tbody id="ncLotStatsBody"><tr><td colspan="2" class="lim-muted">Sin datos.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="nc-card">
+          <h3>Top 20 números más frecuentes</h3>
+          <div id="ncChartTop20" class="nc-chart"></div>
+        </div>
+        <div class="nc-card">
+          <h3>Importaciones por ejecución</h3>
+          <table class="nc-mini-table">
+            <thead><tr><th>Fecha</th><th>Importados</th><th>Estado</th></tr></thead>
+            <tbody id="ncImportRunsBody"><tr><td colspan="3" class="lim-muted">Sin ejecuciones registradas.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="ncHistoryModal" class="nc-modal hidden">
+  <div class="nc-modal-box">
+    <div class="nc-modal-head">
+      <div id="ncHistoryTitle" class="nc-modal-title">Historial del número</div>
+      <button type="button" id="ncHistoryClose" class="lim-btn lim-btn-secondary" style="padding:6px 10px">Cerrar</button>
+    </div>
+    <div id="ncHistoryBody" class="nc-dates"></div>
+  </div>
+</div>
+
+<div id="ncLimitModal" class="nc-modal hidden">
+  <div class="nc-modal-box">
+    <div class="nc-modal-head">
+      <div id="ncLimitTitle" class="nc-modal-title">Limitar número</div>
+      <button type="button" id="ncLimitClose" class="lim-btn lim-btn-secondary" style="padding:6px 10px">Cerrar</button>
+    </div>
+    <div class="lim-actions" style="margin-top:0">
+      <button type="button" class="lim-btn lim-btn-warn" data-limit-preset="25">RD$25</button>
+      <button type="button" class="lim-btn lim-btn-warn" data-limit-preset="50">RD$50</button>
+      <button type="button" class="lim-btn lim-btn-warn" data-limit-preset="100">RD$100</button>
+    </div>
+    <div class="lim-field" style="margin-top:10px">
+      <label for="ncLimitCustom">Personalizado (RD$)</label>
+      <input id="ncLimitCustom" type="number" min="1" step="0.01" placeholder="Ej. 35">
+    </div>
+    <div class="lim-actions">
+      <button type="button" id="ncLimitSave" class="lim-btn lim-btn-primary">Aplicar límite</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+var cajeroState={page:1,pages:1,total:0,open:false,loading:false};
+var hotState={page:1,pages:1,total:0,loading:false,tab:"mas_calientes"};
+var hotLimitDraft={numero:"",lottery:"",draw:"",valor:0};
+var ncFullPollTimer=null;
+var ncFullNotifiedAt="";
+var DRAWS_POR_LOTERIA = {{ draws_por_loteria|tojson }};
+function qs(id){return document.getElementById(id);}
+function flash(msg, ok){
+  var box=qs("flashBox"); if(!box) return;
+  box.innerHTML='<div class="lim-flash '+(ok?'ok':'err')+'">'+msg+'</div>';
+  setTimeout(function(){ box.innerHTML=""; }, 5000);
+}
+function esc(t){
+  return String(t==null?"":t).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]||c;
+  });
+}
+function toast(msg, ok, ms){
+  var wrap=qs("limToastWrap"); if(!wrap) return;
+  var n=document.createElement("div");
+  n.className='lim-toast '+(ok?'ok':'err');
+  n.innerHTML=esc(msg);
+  wrap.appendChild(n);
+  requestAnimationFrame(function(){ n.classList.add("show"); });
+  setTimeout(function(){
+    n.classList.remove("show");
+    setTimeout(function(){ if(n.parentNode){ n.parentNode.removeChild(n); } }, 220);
+  }, Math.max(1200, ms||3000));
+}
+function btnLoading(btn, loading, loadingText, doneText){
+  if(!btn) return;
+  if(loading){
+    btn.disabled=true;
+    btn.dataset.doneText=doneText||btn.textContent||"";
+    btn.innerHTML='<span class="lim-btn-spinner"></span>'+(loadingText||"Guardando...");
+    return;
+  }
+  btn.disabled=false;
+  btn.textContent=doneText||btn.dataset.doneText||btn.textContent||"";
+}
+function api(method,url,body){
+  return fetch(url,{
+    method:method,
+    credentials:"same-origin",
+    headers:body?{"Content-Type":"application/json","X-Requested-With":"XMLHttpRequest"}:{"X-Requested-With":"XMLHttpRequest"},
+    body:body?JSON.stringify(body):null
+  }).then(function(r){
+    return r.text().then(function(txt){
+      var j={};
+      try{ j=txt?JSON.parse(txt):{}; }catch(_e){ j={ok:false,error:txt||("HTTP "+r.status)}; }
+      if(!r.ok && j.ok!==false) j={ok:false,error:j.error||("HTTP "+r.status)};
+      return j;
+    });
+  });
+}
+function refrescarSorteos(){
+  var lot=qs("fLottery").value||"";
+  var sel=qs("fDraw");
+  var prev=sel.value;
+  sel.innerHTML='<option value="__TODOS__">Todos los sorteos</option>';
+  if(!lot || lot==="__TODAS__"){ return; }
+  (DRAWS_POR_LOTERIA[lot]||[]).forEach(function(d){
+    var o=document.createElement("option");
+    o.value=d; o.textContent=d;
+    sel.appendChild(o);
+  });
+  if(prev){
+    for(var i=0;i<sel.options.length;i++){
+      if(sel.options[i].value===prev){ sel.value=prev; break; }
+    }
+  }
+}
+function syncNumeroSelector(){
+  var v=qs("fNumSelect").value||"__TODOS_NUMEROS__";
+  var isAll=(v==="__TODOS_NUMEROS__");
+  qs("fTodosNumeros").checked=isAll;
+  qs("fNum").value=isAll?"":v;
+}
+function buildBody(){
+  var lot=qs("fLottery").value||"__TODAS__";
+  var draw=qs("fDraw").value||"__TODOS__";
+  return {
+    accion:"upsert",
+    banca_id:parseInt(qs("fBanca").value,10)||0,
+    usuario_id:parseInt(qs("fCajero").value,10)||0,
+    lottery:lot,
+    draw:draw,
+    numero:(qs("fNum").value||"").trim(),
+    limite:qs("fLim").value,
+    fecha_rd:(qs("fFecha").value||"").trim(),
+    activo:1,
+    all_lotteries:lot==="__TODAS__",
+    all_draws:draw==="__TODOS__",
+    aplicar_todos_numeros:!!qs("fTodosNumeros").checked
+  };
+}
+function guardarLimite(){
+  syncNumeroSelector();
+  var body=buildBody();
+  if(!body.banca_id){ flash("Seleccione cajero/banca.", false); return; }
+  if(!body.limite || Number(body.limite)<0){ flash("Digite un límite válido.", false); return; }
+  var btn=qs("btnGuardarLim");
+  btn.disabled=true; btn.textContent="Guardando...";
+  api("POST","/api/admin/limites/global",body).then(function(d){
+    if(d.ok){
+      flash("✅ Límite guardado correctamente.", true);
+      if(cajeroState.open) cargarLimites();
+    }else{
+      flash("Error: "+(d.error||"No se pudo guardar"), false);
+    }
+  }).catch(function(){
+    flash("Error de red al guardar.", false);
+  }).finally(function(){
+    btn.disabled=false; btn.textContent="Guardar límite";
+  });
+}
+function queryLimites(){
+  var q="?vista=cajero&page="+cajeroState.page+"&per_page=50&activo=1";
+  var bid=parseInt(qs("fBanca").value,10)||0;
+  if(bid) q+="&banca_id="+encodeURIComponent(String(bid));
+  return q;
+}
+function renderTabla(items){
+  var tb=qs("cTblBody");
+  if(!items||!items.length){
+    tb.innerHTML='<tr><td colspan="6" class="lim-muted">Sin límites guardados para esta banca.</td></tr>';
+    return;
+  }
+  tb.innerHTML="";
+  items.forEach(function(r){
+    var tr=document.createElement("tr");
+    tr.innerHTML=
+      '<td>'+(r.cajero_nombre||"—")+'</td>'
+      +'<td>'+(r.lottery||"Todas")+'</td>'
+      +'<td>'+(r.draw||"Todos")+'</td>'
+      +'<td><b>'+(r.numero||"00-99")+'</b></td>'
+      +'<td><b>RD$ '+Number(r.limite||0).toFixed(2)+'</b></td>'
+      +'<td><button type="button" class="lim-btn lim-btn-danger" data-del="'+r.id+'" style="padding:6px 10px;font-size:11px">Eliminar</button></td>';
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("[data-del]").forEach(function(btn){
+    btn.onclick=function(){
+      if(!confirm("¿Eliminar este límite?")) return;
+      api("DELETE","/api/admin/limites/global",{id:btn.getAttribute("data-del")}).then(function(d){
+        if(d.ok){ flash("Límite eliminado.", true); cargarLimites(); }
+        else flash("Error: "+(d.error||"No se pudo eliminar"), false);
+      });
+    };
+  });
+}
+function cargarLimites(){
+  if(cajeroState.loading) return;
+  cajeroState.loading=true;
+  api("GET","/api/admin/limites/global"+queryLimites()).then(function(d){
+    cajeroState.loading=false;
+    if(!d.ok){ flash("Error cargando límites.", false); return; }
+    cajeroState.page=d.page||1;
+    cajeroState.pages=d.pages||1;
+    cajeroState.total=d.total||0;
+    qs("cPagInfo").textContent="Página "+cajeroState.page+" / "+cajeroState.pages+" · "+cajeroState.total+" registro(s)";
+    qs("cBtnPrev").disabled=cajeroState.page<=1;
+    qs("cBtnNext").disabled=cajeroState.page>=cajeroState.pages;
+    renderTabla(d.items||[]);
+  }).catch(function(){
+    cajeroState.loading=false;
+    flash("Error de red cargando límites.", false);
+  });
+}
+function togglePanel(){
+  var panel=qs("panelCajero");
+  cajeroState.open=!cajeroState.open;
+  panel.classList.toggle("hidden", !cajeroState.open);
+  qs("btnVerCajero").textContent=cajeroState.open?"Ocultar límites guardados":"Ver límites guardados";
+  if(cajeroState.open){
+    cajeroState.page=1;
+    cargarLimites();
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+}
+
+function hotConfigBody(){
+  return {
+    accion:"numeros_calientes_config",
+    auto_activo:qs("ncAuto").value==="1",
+    dias_analisis:parseInt(qs("ncDias").value,10)||30,
+    riesgo_minimo:qs("ncRiesgo").value||"alto",
+    limite_alto:qs("ncLimAlto").value,
+    limite_medio:qs("ncLimMedio").value,
+    limite_bajo:qs("ncLimBajo").value
+  };
+}
+function applyHotConfig(c){
+  c=c||{};
+  qs("ncAuto").value=c.auto_activo?"1":"0";
+  qs("ncDias").value=String(c.dias_analisis||30);
+  qs("ncRiesgo").value=c.riesgo_minimo||"alto";
+  qs("ncLimAlto").value=Number(c.limite_alto||0).toFixed(2);
+  qs("ncLimMedio").value=Number(c.limite_medio||50).toFixed(2);
+  qs("ncLimBajo").value=Number(c.limite_bajo||100).toFixed(2);
+}
+function loadHotConfig(forceRead){
+  var url="/api/admin/limites/global?vista=numeros_calientes_config";
+  if(forceRead){ url += "&_ts="+Date.now(); }
+  return api("GET",url).then(function(d){
+    if(!d.ok||!d.config) return null;
+    applyHotConfig(d.config||{});
+    return d.config||null;
+  }).catch(function(){
+    return null;
+  });
+}
+function guardarHotConfig(){
+  var btn=qs("btnNcGuardar");
+  btnLoading(btn,true,"Guardando...","Guardar configuración");
+  api("POST","/api/admin/limites/global",hotConfigBody()).then(function(d){
+    if(d.ok){
+      console.log('[NUMEROS_CALIENTES] Configuración guardada');
+      if(d.persisted_config){ applyHotConfig(d.persisted_config); }
+      return loadHotConfig(true).then(function(){
+        toast("✅ Configuración guardada correctamente", true, 3000);
+        flash("✅ Configuración de números calientes guardada.", true);
+        cargarHotStats(true);
+      });
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error al guardar la configuración"+detail, false, 5000);
+      flash("Error: "+(d.error||"No se pudo guardar configuración"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error al guardar la configuración"+detail, false, 5000);
+    flash("Error de red guardando configuración de números calientes.", false);
+  }).finally(function(){
+    btnLoading(btn,false,"","Guardar configuración");
+  });
+}
+function hotQuery(refresh){
+  var q="?vista=numeros_calientes&page="+hotState.page+"&per_page=2000";
+  q+="&tab="+encodeURIComponent(hotState.tab||"mas_calientes");
+  var bid=bancaSeleccionada();
+  if(bid){ q+="&banca_id="+encodeURIComponent(String(bid)); }
+  if(refresh) q+="&refresh=1";
+  return q;
+}
+function fmtIsoToMMDD(iso){
+  var t=String(iso||"");
+  if(t.length<10) return "—";
+  return t.slice(5,7)+"/"+t.slice(8,10);
+}
+function fmtIsoToMDY(iso){
+  var t=String(iso||"");
+  if(t.length<10) return "—";
+  return t.slice(5,7)+"/"+t.slice(8,10)+"/"+t.slice(0,4);
+}
+function humanLastSeen(iso){
+  var t=String(iso||"");
+  if(t.length<10) return "—";
+  var d=new Date(t+"T00:00:00");
+  if(isNaN(d.getTime())) return fmtIsoToMMDD(t);
+  var now=new Date();
+  var today=new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var diff=Math.floor((today-d)/(1000*60*60*24));
+  if(diff<=0) return "hoy";
+  if(diff===1) return "ayer";
+  return "hace "+diff+" días";
+}
+function fmtRdShort(n){
+  return "RD$"+Number(n||0).toLocaleString("es-DO",{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function pillRiesgoBanca(nivel, label){
+  var n=String(nivel||"bajo").toLowerCase();
+  var cls=(n==="critico")?"critico":((n==="alto")?"rojo":((n==="medio")?"amarillo":"verde"));
+  var txt=String(label||nivel||"Bajo").toUpperCase();
+  return '<span class="lim-pill '+cls+'">'+txt+'</span>';
+}
+function renderBancaStack(r, opts){
+  opts=opts||{};
+  if(!bancaSeleccionada()){
+    return '<div class="nc-banca-empty">Seleccione banca/cajero arriba</div>';
+  }
+  var h='';
+  if(opts.showTrend && r.trend_pct!=null){
+    var pct=Number(r.trend_pct||0);
+    h+='<div class="nc-banca-line">🔥 Tendencia '+(pct>=0?"+":"")+pct+'%</div>';
+  }
+  h+='<div class="nc-banca-line">💰 Vendido hoy '+fmtRdShort(r.vendido_hoy)+'</div>';
+  h+='<div class="nc-banca-line">🎫 Tickets '+Number(r.tickets_hoy||0)+'</div>';
+  h+='<div class="nc-banca-line">🎯 Límite '+fmtRdShort(r.limite_configurado)+'</div>';
+  h+='<div class="nc-banca-line">📉 Disponible '+fmtRdShort(r.disponible)+'</div>';
+  h+='<div class="nc-banca-line">💸 Posible pago '+fmtRdShort(r.posible_pago)+'</div>';
+  h+='<div class="nc-banca-line">🚨 Riesgo '+pillRiesgoBanca(r.nivel_riesgo_banca, r.nivel_riesgo_banca_label)+'</div>';
+  return h;
+}
+function hotActionsHtml(r){
+  var estadoBloq=!!r.bloqueado;
+  var limiteManual=Number(r.limite_manual||0);
+  var tieneManual=!!r.tiene_limite_manual;
+  var accionesHtml='';
+  if(estadoBloq){
+    accionesHtml+='<button type="button" class="lim-btn lim-btn-success" style="padding:6px 9px;font-size:11px" data-hot-unblock="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🟢 Desbloquear</button>';
+  }else{
+    accionesHtml+='<button type="button" class="lim-btn lim-btn-danger" style="padding:6px 9px;font-size:11px" data-hot-block="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🔴 Bloquear</button>';
+    accionesHtml+='<button type="button" class="lim-btn lim-btn-warn" style="padding:6px 9px;font-size:11px" data-hot-limit="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'" data-limit="'+(limiteManual>0?limiteManual.toFixed(2):"")+'">🟡 Limitar</button>';
+    if(tieneManual && limiteManual>0){
+      accionesHtml+='<button type="button" class="lim-btn lim-btn-success" style="padding:6px 9px;font-size:11px" data-hot-unblock="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🟢 Desbloquear</button>';
+    }
+  }
+  return accionesHtml;
+}
+function setHotTableHeader(tab){
+  var h=qs("ncTableHeadRow");
+  if(!h) return;
+  if(tab==="bloqueados"){
+    h.innerHTML=
+      '<th>Número</th>'
+      +'<th>Lotería</th>'
+      +'<th>Sorteo</th>'
+      +'<th>Límite</th>'
+      +'<th>Mi banca hoy</th>'
+      +'<th>Fecha bloqueo</th>'
+      +'<th>Origen</th>'
+      +'<th>Usuario</th>'
+      +'<th>Acción</th>';
+    return;
+  }
+  if(tab==="riesgo"){
+    h.innerHTML=
+      '<th>Número</th>'
+      +'<th>Lotería</th>'
+      +'<th>Sorteo</th>'
+      +'<th>Tendencia hist.</th>'
+      +'<th>Mi banca hoy</th>'
+      +'<th>Acción</th>';
+    return;
+  }
+  if(tab==="tendencia"){
+    h.innerHTML=
+      '<th>Número</th>'
+      +'<th>Lotería</th>'
+      +'<th>Sorteo</th>'
+      +'<th>7d</th>'
+      +'<th>15d</th>'
+      +'<th>30d</th>'
+      +'<th>Tendencia</th>'
+      +'<th>Mi banca hoy</th>'
+      +'<th>Confianza</th>'
+      +'<th>Acción</th>';
+    return;
+  }
+  if(tab==="frios"){
+    h.innerHTML=
+      '<th>Número</th>'
+      +'<th>Lotería</th>'
+      +'<th>Sorteo</th>'
+      +'<th>Última aparición</th>'
+      +'<th>Sorteos sin salir</th>'
+      +'<th>Mi banca hoy</th>'
+      +'<th>Confianza</th>'
+      +'<th>Acción</th>';
+    return;
+  }
+  h.innerHTML=
+    '<th>Número</th>'
+    +'<th>Lotería</th>'
+    +'<th>Sorteo</th>'
+    +'<th>Frecuencia</th>'
+    +'<th>Última aparición</th>'
+    +'<th>Riesgo hist.</th>'
+    +'<th>Mi banca hoy</th>'
+    +'<th>Confianza</th>'
+    +'<th>Acción</th>';
+}
+function setHistorialHint(msg){
+  var n=qs("ncHistHint");
+  if(!n) return;
+  n.textContent=msg||"";
+}
+function updateTabCounters(counts){
+  counts=counts||{};
+  document.querySelectorAll("[data-nc-tab]").forEach(function(btn){
+    var tab=btn.getAttribute("data-nc-tab");
+    if(!btn.dataset.baseLabel){
+      btn.dataset.baseLabel=String(btn.textContent||"").replace(/\s*\(\d+\)\s*$/,"").trim();
+    }
+    if(tab==="mas_calientes"){
+      btn.textContent=btn.dataset.baseLabel+" ("+Number(counts.mas_calientes||0)+")";
+    }else if(tab==="tendencia"){
+      btn.textContent=btn.dataset.baseLabel+" ("+Number(counts.tendencia||0)+")";
+    }else if(tab==="frios"){
+      btn.textContent=btn.dataset.baseLabel+" ("+Number(counts.frios||0)+")";
+    }else if(tab==="bloqueados"){
+      btn.textContent=btn.dataset.baseLabel+" ("+Number(counts.bloqueados||0)+")";
+    }else if(tab==="riesgo"){
+      btn.textContent=btn.dataset.baseLabel+" ("+Number(counts.riesgo||0)+")";
+    }
+  });
+  if(qs("kpiHotVal")) qs("kpiHotVal").textContent=Number(counts.mas_calientes||0);
+  if(qs("kpiTrendVal")) qs("kpiTrendVal").textContent=Number(counts.tendencia||0);
+  if(qs("kpiColdVal")) qs("kpiColdVal").textContent=Number(counts.frios||0);
+  if(qs("kpiBlockedVal")) qs("kpiBlockedVal").textContent=Number(counts.bloqueados||0);
+}
+function hotTabLabel(tab){
+  if(tab==="bloqueados") return "Bloqueados";
+  if(tab==="tendencia") return "Tendencia";
+  if(tab==="frios") return "Fríos";
+  if(tab==="riesgo") return "Riesgo por lotería";
+  if(tab==="estadisticas") return "Estadísticas";
+  return "Más calientes";
+}
+function showHotLoading(){
+  var tb=qs("ncTblBody");
+  if(!tb) return;
+  var lbl=hotTabLabel(hotState.tab||"mas_calientes");
+  tb.innerHTML='<tr><td colspan="10" class="lim-muted">Cargando '+lbl.toLowerCase()+'…</td></tr>';
+  if(qs("ncPagInfo")) qs("ncPagInfo").textContent="Cargando "+lbl.toLowerCase()+"…";
+}
+function activateTabButton(tab){
+  document.querySelectorAll("[data-nc-tab]").forEach(function(btn){
+    btn.classList.toggle("active", btn.getAttribute("data-nc-tab")===tab);
+  });
+}
+function setHotTab(tab){
+  hotState.tab=tab||"mas_calientes";
+  activateTabButton(hotState.tab);
+  setHotTableHeader(hotState.tab);
+  var showTable=(hotState.tab==="mas_calientes"||hotState.tab==="tendencia"||hotState.tab==="frios"||hotState.tab==="bloqueados"||hotState.tab==="riesgo");
+  qs("ncPaneTable").classList.toggle("hidden", !showTable);
+  qs("ncPaneTrend").classList.add("hidden");
+  qs("ncPaneStats").classList.toggle("hidden", hotState.tab!=="estadisticas");
+  hotState.page=1;
+  if(showTable){
+    if(hotState.tab==="bloqueados"){ setHistorialHint("Solo números bloqueados de la banca seleccionada."); }
+    else if(hotState.tab==="frios"){ setHistorialHint("Números con más sorteos sin salir."); }
+    else if(hotState.tab==="riesgo"){ setHistorialHint("Riesgo de tu banca hoy: vendido, límite, posible pago y nivel de alerta."); }
+    else if(hotState.tab==="mas_calientes"){ setHistorialHint("Números calientes según riesgo histórico configurado."); }
+    else if(hotState.tab==="tendencia"){ setHistorialHint("Números con tendencia al alza en los últimos sorteos."); }
+    else{ setHistorialHint(""); }
+    showHotLoading();
+    cargarHotStats(false);
+    if(hotState.tab==="tendencia"||hotState.tab==="frios"){ cargarHotDashboard(); }
+    return;
+  }
+  cargarHotDashboard();
+}
+function bancaSeleccionada(){
+  return parseInt((qs("fBanca")&&qs("fBanca").value)||"0",10)||0;
+}
+function renderHotRows(items){
+  var tb=qs("ncTblBody");
+  if(!items||!items.length){
+    if(hotState.tab==="bloqueados"){
+      tb.innerHTML='<tr><td colspan="9" class="lim-muted">No tienes números bloqueados actualmente.</td></tr>';
+    }else if(hotState.tab==="tendencia"){
+      tb.innerHTML='<tr><td colspan="10" class="lim-muted">No hay números en tendencia en este momento.</td></tr>';
+    }else if(hotState.tab==="frios"){
+      tb.innerHTML='<tr><td colspan="8" class="lim-muted">No hay números fríos detectados con el historial actual.</td></tr>';
+    }else if(hotState.tab==="riesgo"){
+      tb.innerHTML='<tr><td colspan="6" class="lim-muted">No hay exposición de riesgo relevante para la banca seleccionada.</td></tr>';
+    }else{
+      tb.innerHTML='<tr><td colspan="9" class="lim-muted">No hay datos para esta vista.</td></tr>';
+    }
+    return;
+  }
+  tb.innerHTML="";
+  if(hotState.tab==="bloqueados"){
+    items.forEach(function(r){
+      var tr=document.createElement("tr");
+      tr.innerHTML=
+        '<td><b>'+(r.numero||"--")+'</b></td>'
+        +'<td>'+(r.lottery||"—")+'</td>'
+        +'<td>'+(r.draw||"—")+'</td>'
+        +'<td><b>RD$ '+Number(r.limite_auto||0).toFixed(2)+'</b></td>'
+        +'<td><div class="nc-banca-stack">'+renderBancaStack(r)+'</div></td>'
+        +'<td>'+(r.fecha_bloqueo?fmtIsoToMDY(r.fecha_bloqueo):"—")+'</td>'
+        +'<td>'+(r.origen||"Manual")+'</td>'
+        +'<td>'+(r.usuario_bloqueo||"Sistema")+'</td>'
+        +'<td><button type="button" class="lim-btn lim-btn-success" style="padding:6px 9px;font-size:11px" data-hot-unblock="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🟢 Desbloquear</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll("[data-hot-unblock]").forEach(function(btn){
+      btn.onclick=function(){
+        desbloquearNumeroCaliente(btn.getAttribute("data-num"), btn.getAttribute("data-lot"), btn.getAttribute("data-draw"));
+      };
+    });
+    return;
+  }
+  if(hotState.tab==="riesgo"){
+    items.forEach(function(r){
+      var tr=document.createElement("tr");
+      var pct=Number(r.trend_pct||0);
+      var trendTxt=(pct!==0)?('⬆️ '+(pct>=0?'+':'')+pct+'%'):'—';
+      tr.innerHTML=
+        '<td><b>'+(r.numero||"--")+'</b></td>'
+        +'<td>'+(r.lottery||"—")+'</td>'
+        +'<td>'+(r.draw||"—")+'</td>'
+        +'<td class="nc-trend-up">'+trendTxt+'</td>'
+        +'<td><div class="nc-banca-stack">'+renderBancaStack(r,{showTrend:true})+'</div></td>'
+        +'<td><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+hotActionsHtml(r)+'</div></td>';
+      tb.appendChild(tr);
+    });
+  }else if(hotState.tab==="tendencia"){
+    items.forEach(function(r){
+      var tr=document.createElement("tr");
+      var confTxt=Number(r.confidence_score||20)+'% '+(r.confidence_label||"Normal");
+      var pct=Number(r.trend_pct||0);
+      tr.innerHTML=
+        '<td><b>'+(r.numero||"--")+'</b></td>'
+        +'<td>'+(r.lottery||"—")+'</td>'
+        +'<td>'+(r.draw||"—")+'</td>'
+        +'<td>'+Number(r.veces_any_7||0)+'</td>'
+        +'<td>'+Number(r.veces_any_15||0)+'</td>'
+        +'<td>'+Number(r.veces_any_30||0)+'</td>'
+        +'<td class="nc-trend-up">⬆️ '+(pct>=0?'+':'')+pct+'%</td>'
+        +'<td><div class="nc-banca-stack">'+renderBancaStack(r,{showTrend:true})+'</div></td>'
+        +'<td>'+confTxt+'</td>'
+        +'<td><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+hotActionsHtml(r)+'</div></td>';
+      tb.appendChild(tr);
+    });
+  }else if(hotState.tab==="frios"){
+    items.forEach(function(r){
+      var tr=document.createElement("tr");
+      var confTxt=Number(r.confidence_score||20)+'% '+(r.confidence_label||"Normal");
+      tr.innerHTML=
+        '<td><b>'+(r.numero||"--")+'</b></td>'
+        +'<td>'+(r.lottery||"—")+'</td>'
+        +'<td>'+(r.draw||"—")+'</td>'
+        +'<td>'+(r.ultima_vez?humanLastSeen(r.ultima_vez):"—")+'</td>'
+        +'<td><b>'+Number(r.sorteos_sin_salir||0)+'</b></td>'
+        +'<td><div class="nc-banca-stack">'+renderBancaStack(r)+'</div></td>'
+        +'<td>'+confTxt+'</td>'
+        +'<td><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+hotActionsHtml(r)+'</div></td>';
+      tb.appendChild(tr);
+    });
+  }else{
+  items.forEach(function(r){
+    var tr=document.createElement("tr");
+    var riesgo=(r.nivel_riesgo||"").toUpperCase();
+    var sem=(r.semaforo||"verde").toLowerCase();
+    var estadoBloq=!!r.bloqueado;
+    var limiteManual=Number(r.limite_manual||0);
+    var tieneManual=!!r.tiene_limite_manual;
+    var accionesHtml='';
+    if(estadoBloq){
+      accionesHtml+='<button type="button" class="lim-btn lim-btn-success" style="padding:6px 9px;font-size:11px" data-hot-unblock="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🟢 Desbloquear</button>';
+    }else{
+      if(riesgo==="ALTO" || !tieneManual){
+        accionesHtml+='<button type="button" class="lim-btn lim-btn-danger" style="padding:6px 9px;font-size:11px" data-hot-block="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🔴 Bloquear</button>';
+      }
+      accionesHtml+='<button type="button" class="lim-btn lim-btn-warn" style="padding:6px 9px;font-size:11px" data-hot-limit="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'" data-limit="'+(limiteManual>0?limiteManual.toFixed(2):"")+'">🟡 Limitar</button>';
+      if(tieneManual && limiteManual>0){
+        accionesHtml+='<button type="button" class="lim-btn lim-btn-success" style="padding:6px 9px;font-size:11px" data-hot-unblock="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">🟢 Desbloquear</button>';
+      }
+    }
+    tr.innerHTML=
+      '<td><b>'+(r.numero||"--")+'</b></td>'
+      +'<td>'+(r.lottery||"—")+'</td>'
+      +'<td>'+(r.draw||"—")+'</td>'
+      +'<td>'+(Number(r.veces_salio||0))+' veces</td>'
+      +'<td>'+(r.ultima_vez?humanLastSeen(r.ultima_vez):"—")+'</td>'
+      +'<td><span class="lim-pill '+sem+'">'+riesgo+'</span></td>'
+      +'<td><div class="nc-banca-stack">'+renderBancaStack(r,{showTrend:Number(r.trend_pct||0)!==0})+'</div></td>'
+      +'<td>'+Number(r.confidence_score||20)+'% '+(r.confidence_label||"Normal")+'</td>'
+      +'<td>'
+      +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'
+      +accionesHtml
+      +'<button type="button" class="lim-btn lim-btn-secondary" style="padding:6px 9px;font-size:11px" data-hot-history="1" data-num="'+(r.numero||"")+'" data-lot="'+(r.lottery||"")+'" data-draw="'+(r.draw||"")+'">Ver historial del número</button>'
+      +'</div>'
+      +'</td>';
+    tb.appendChild(tr);
+  });
+  }
+  tb.querySelectorAll("[data-hot-block]").forEach(function(btn){
+    btn.onclick=function(){
+      bloquearNumeroCaliente(btn.getAttribute("data-num"), btn.getAttribute("data-lot"), btn.getAttribute("data-draw"));
+    };
+  });
+  tb.querySelectorAll("[data-hot-unblock]").forEach(function(btn){
+    btn.onclick=function(){
+      desbloquearNumeroCaliente(btn.getAttribute("data-num"), btn.getAttribute("data-lot"), btn.getAttribute("data-draw"));
+    };
+  });
+  tb.querySelectorAll("[data-hot-history]").forEach(function(btn){
+    btn.onclick=function(){
+      verHistorialNumero(btn.getAttribute("data-num"), btn.getAttribute("data-lot"), btn.getAttribute("data-draw"));
+    };
+  });
+  tb.querySelectorAll("[data-hot-limit]").forEach(function(btn){
+    btn.onclick=function(){
+      abrirModalLimitar(
+        btn.getAttribute("data-num"),
+        btn.getAttribute("data-lot"),
+        btn.getAttribute("data-draw"),
+        btn.getAttribute("data-limit")
+      );
+    };
+  });
+}
+function cargarHotStats(refresh){
+  var reqTab=hotState.tab||"mas_calientes";
+  if(hotState.loading) return;
+  hotState.loading=true;
+  hotState._reqSeq=(hotState._reqSeq||0)+1;
+  var seq=hotState._reqSeq;
+  api("GET","/api/admin/limites/global"+hotQuery(refresh)).then(function(d){
+    hotState.loading=false;
+    if(seq!==hotState._reqSeq) return;
+    if(hotState.tab!==reqTab) return;
+    if(!d.ok){
+      flash("Error cargando "+hotTabLabel(reqTab).toLowerCase()+".", false);
+      return;
+    }
+    if((d.tab||"") && d.tab!==reqTab){
+      return;
+    }
+    if(d.counts){ updateTabCounters(d.counts); }
+    if(d.warning){ toast(d.warning,false,3800); }
+    hotState.page=d.page||1;
+    hotState.pages=d.pages||1;
+    hotState.total=d.total||0;
+    var pref=hotTabLabel(reqTab)+": ";
+    var txt=pref+hotState.total+" registro(s)";
+    if(hotState.pages>1){
+      txt="Página "+hotState.page+" / "+hotState.pages+" · "+txt;
+    }
+    qs("ncPagInfo").textContent=txt;
+    qs("ncBtnPrev").disabled=hotState.page<=1;
+    qs("ncBtnNext").disabled=hotState.page>=hotState.pages;
+    renderHotRows(d.items||[]);
+  }).catch(function(){
+    hotState.loading=false;
+    if(hotState.tab===reqTab){
+      flash("Error de red cargando "+hotTabLabel(reqTab).toLowerCase()+".", false);
+    }
+  });
+}
+function bloquearNumeroCaliente(numero, lottery, draw){
+  var banca_id=bancaSeleccionada();
+  if(!banca_id){
+    toast("Selecciona primero un cajero/banca para bloquear.", false, 4000);
+    return;
+  }
+  api("POST","/api/admin/limites/global",{
+    accion:"numeros_calientes_bloquear_manual",
+    banca_id:banca_id,
+    lottery:lottery||"",
+    draw:draw||"",
+    numero:numero||""
+  }).then(function(d){
+    if(d.ok){
+      toast("Número bloqueado correctamente", true, 3000);
+      flash("✅ Número bloqueado correctamente", true);
+      if(cajeroState.open){ cargarLimites(); }
+      setHotTab("bloqueados");
+      cargarHotDashboard();
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error al bloquear el número"+detail, false, 5000);
+      flash("Error: "+(d.error||"No se pudo bloquear el número"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error al bloquear el número"+detail, false, 5000);
+  });
+}
+function bloquearRiesgoAltoMasivo(){
+  var banca_id=bancaSeleccionada();
+  if(!banca_id){
+    toast("Selecciona primero un cajero/banca para bloquear.", false, 4000);
+    return;
+  }
+  var btn=qs("btnNcBloqAltos");
+  btnLoading(btn,true,"Bloqueando riesgo alto...","Bloquear todos Alto");
+  api("POST","/api/admin/limites/global",{
+    accion:"numeros_calientes_bloquear_riesgo_alto",
+    banca_id:banca_id
+  }).then(function(d){
+    if(d.ok){
+      toast("Número bloqueado correctamente", true, 3500);
+      flash("✅ "+(d.message||"Bloqueo masivo aplicado"), true);
+      if(cajeroState.open){ cargarLimites(); }
+      setHotTab("bloqueados");
+      cargarHotDashboard();
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error en bloqueo masivo"+detail, false, 5000);
+      flash("Error: "+(d.error||"No se pudo bloquear riesgo alto"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error en bloqueo masivo"+detail, false, 5000);
+  }).finally(function(){
+    btnLoading(btn,false,"","Bloquear todos Alto");
+  });
+}
+function bloquearRiesgoMedioMasivo(){
+  var banca_id=bancaSeleccionada();
+  if(!banca_id){
+    toast("Selecciona primero un cajero/banca para bloquear.", false, 4000);
+    return;
+  }
+  var btn=qs("btnNcBloqMedios");
+  btnLoading(btn,true,"Bloqueando riesgo medio...","Bloquear todos Medio");
+  api("POST","/api/admin/limites/global",{
+    accion:"numeros_calientes_bloquear_riesgo_medio",
+    banca_id:banca_id
+  }).then(function(d){
+    if(d.ok){
+      toast("Número bloqueado correctamente", true, 3500);
+      flash("✅ "+(d.message||"Bloqueo masivo aplicado"), true);
+      if(cajeroState.open){ cargarLimites(); }
+      setHotTab("bloqueados");
+      cargarHotDashboard();
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error en bloqueo masivo"+detail, false, 5000);
+      flash("Error: "+(d.error||"No se pudo bloquear riesgo medio"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error en bloqueo masivo"+detail, false, 5000);
+  }).finally(function(){
+    btnLoading(btn,false,"","Bloquear todos Medio");
+  });
+}
+function desbloquearTodosHot(){
+  var banca_id=bancaSeleccionada();
+  if(!banca_id){
+    toast("Selecciona primero un cajero/banca.", false, 4000);
+    return;
+  }
+  var btn=qs("btnNcDesbloqTodos");
+  btnLoading(btn,true,"Desbloqueando...","Desbloquear todos");
+  api("POST","/api/admin/limites/global",{
+    accion:"numeros_calientes_desbloquear_todos",
+    banca_id:banca_id
+  }).then(function(d){
+    if(d.ok){
+      toast("Números desbloqueados correctamente", true, 3500);
+      flash("✅ "+(d.message||"Todos los límites fueron removidos"), true);
+      if(cajeroState.open){ cargarLimites(); }
+      setHotTab("bloqueados");
+      cargarHotDashboard();
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error al desbloquear todos"+detail, false, 5000);
+      flash("Error: "+(d.error||"No se pudo desbloquear"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error al desbloquear todos"+detail, false, 5000);
+  }).finally(function(){
+    btnLoading(btn,false,"","Desbloquear todos");
+  });
+}
+function desbloquearNumeroCaliente(numero, lottery, draw){
+  var banca_id=bancaSeleccionada();
+  if(!banca_id){
+    toast("Selecciona primero un cajero/banca para desbloquear.", false, 4000);
+    return;
+  }
+  api("POST","/api/admin/limites/global",{
+    accion:"numeros_calientes_desbloquear_manual",
+    banca_id:banca_id,
+    lottery:lottery||"",
+    draw:draw||"",
+    numero:numero||""
+  }).then(function(d){
+    if(d.ok){
+      toast("Número desbloqueado correctamente", true, 3000);
+      flash("✅ Número desbloqueado correctamente", true);
+      if(cajeroState.open){ cargarLimites(); }
+      cargarHotStats(false);
+      cargarHotDashboard();
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error al desbloquear el número"+detail, false, 5000);
+      flash("Error: "+(d.error||"No se pudo desbloquear el número"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error al desbloquear el número"+detail, false, 5000);
+  });
+}
+function openHistoryModal(title,items){
+  qs("ncHistoryTitle").textContent=title||"Historial del número";
+  var body=qs("ncHistoryBody");
+  body.innerHTML="";
+  if(!items||!items.length){
+    body.innerHTML='<span class="lim-muted">Sin historial para este número.</span>';
+  }else{
+    items.forEach(function(it){
+      var sp=document.createElement("span");
+      sp.className="nc-date-chip";
+      sp.textContent=(it.mmdd||fmtIsoToMMDD(it.iso||""))+(it.iso?(" · "+it.iso):"");
+      body.appendChild(sp);
+    });
+  }
+  qs("ncHistoryModal").classList.remove("hidden");
+}
+function closeHistoryModal(){
+  qs("ncHistoryModal").classList.add("hidden");
+}
+function verHistorialNumero(numero, lottery, draw){
+  var q="/api/admin/limites/global?vista=numeros_calientes_historial"
+    +"&numero="+encodeURIComponent(numero||"")
+    +"&lottery="+encodeURIComponent(lottery||"")
+    +"&draw="+encodeURIComponent(draw||"")
+    +"&limit=30";
+  api("GET",q).then(function(d){
+    if(!d.ok){
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ Error cargando historial"+detail, false, 5000);
+      return;
+    }
+    openHistoryModal("Historial "+(numero||"--")+" · "+(lottery||"")+" · "+(draw||""), d.items||[]);
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error cargando historial"+detail, false, 5000);
+  });
+}
+function abrirModalLimitar(numero, lottery, draw, limitActual){
+  hotLimitDraft={
+    numero:numero||"",
+    lottery:lottery||"",
+    draw:draw||"",
+    valor:0
+  };
+  qs("ncLimitTitle").textContent="Limitar "+(numero||"--")+" · "+(lottery||"")+" · "+(draw||"");
+  qs("ncLimitCustom").value=(limitActual&&Number(limitActual)>0)?Number(limitActual).toFixed(2):"";
+  qs("ncLimitModal").classList.remove("hidden");
+}
+function cerrarModalLimitar(){
+  qs("ncLimitModal").classList.add("hidden");
+}
+function aplicarLimiteNumero(){
+  var banca_id=bancaSeleccionada();
+  if(!banca_id){
+    toast("Selecciona primero un cajero/banca para limitar.", false, 4000);
+    return;
+  }
+  var val=Number(qs("ncLimitCustom").value||0);
+  if(!isFinite(val) || val<=0){
+    toast("Indica un límite válido (RD$).", false, 4000);
+    return;
+  }
+  val=Math.round(val*100)/100;
+  var btn=qs("ncLimitSave");
+  btnLoading(btn,true,"Aplicando límite...","Aplicar límite");
+  api("POST","/api/admin/limites/global",{
+    accion:"numeros_calientes_limitar_manual",
+    banca_id:banca_id,
+    lottery:hotLimitDraft.lottery,
+    draw:hotLimitDraft.draw,
+    numero:hotLimitDraft.numero,
+    limite:val
+  }).then(function(d){
+    if(d.ok){
+      toast("Límite aplicado correctamente", true, 3000);
+      flash("✅ Límite aplicado correctamente", true);
+      cerrarModalLimitar();
+      if(cajeroState.open){ cargarLimites(); }
+      cargarHotStats(false);
+      cargarHotDashboard();
+      return;
+    }
+    var detail=d.error?(" Detalle: "+d.error):"";
+    toast("❌ Error al limitar"+detail, false, 5000);
+    flash("Error: "+(d.error||"No se pudo aplicar el límite"), false);
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error al limitar"+detail, false, 5000);
+  }).finally(function(){
+    btnLoading(btn,false,"","Aplicar límite");
+  });
+}
+function renderSimpleTop(bodyId, items, mode){
+  var tb=qs(bodyId);
+  if(!tb) return;
+  if(!items||!items.length){
+    tb.innerHTML='<tr><td colspan="3" class="lim-muted">Sin datos.</td></tr>';
+    return;
+  }
+  tb.innerHTML="";
+  items.forEach(function(it){
+    var tr=document.createElement("tr");
+    var num=it.numero||"--";
+    var ultima=it.ultima_vez?fmtIsoToMMDD(it.ultima_vez):"—";
+    if(mode==="frecuentes"||mode==="hot"){
+      tr.innerHTML='<td><b>'+num+'</b></td><td>'+Number(it.frecuencia||it.veces_salio||0)+'</td><td>'+ultima+'</td>';
+    }else if(mode==="recientes"){
+      tr.innerHTML='<td><b>'+num+'</b></td><td>'+ultima+'</td><td>'+Number(it.veces_salio||it.frecuencia||0)+'</td>';
+    }else if(mode==="cold"){
+      tr.innerHTML='<td><b>'+num+'</b></td><td>'+Number(it.sorteos_sin_salir||0)+'</td><td>'+(it.lottery||"—")+'</td>';
+    }else if(mode==="trend"){
+      tr.innerHTML='<td><b>'+num+'</b></td><td class="nc-trend-up">+'+Number(it.trend_pct||0)+'%</td><td>'+(it.lottery||"—")+'</td>';
+    }else{
+      tr.innerHTML='<td><b>'+num+'</b></td><td>'+Number(it.frecuencia||0)+'</td><td>'+ultima+'</td>';
+    }
+    tb.appendChild(tr);
+  });
+}
+function renderLotteryStats(items){
+  var tb=qs("ncLotStatsBody");
+  if(!tb) return;
+  if(!items||!items.length){
+    tb.innerHTML='<tr><td colspan="2" class="lim-muted">Sin historial.</td></tr>';
+    return;
+  }
+  tb.innerHTML="";
+  items.forEach(function(r){
+    var tr=document.createElement("tr");
+    tr.innerHTML='<td>'+esc(r.lottery||"—")+'</td><td><b>'+Number(r.resultados_historicos||0)+'</b></td>';
+    tb.appendChild(tr);
+  });
+}
+function renderImportRuns(items){
+  var tb=qs("ncImportRunsBody");
+  if(!tb) return;
+  if(!items||!items.length){
+    tb.innerHTML='<tr><td colspan="3" class="lim-muted">Sin ejecuciones registradas.</td></tr>';
+    return;
+  }
+  tb.innerHTML="";
+  items.forEach(function(r){
+    var tr=document.createElement("tr");
+    tr.innerHTML='<td>'+(r.created_at||"—")+'</td><td><b>'+Number(r.importados_nuevos||0)+'</b></td><td>'+(r.estado||"ok")+'</td>';
+    tb.appendChild(tr);
+  });
+}
+function renderTopChart(items){
+  var wrap=qs("ncChartTop20");
+  if(!wrap) return;
+  if(!items||!items.length){
+    wrap.innerHTML='<div class="lim-muted">Sin datos para gráfico.</div>';
+    return;
+  }
+  wrap.innerHTML="";
+  var max=1;
+  items.forEach(function(it){ max=Math.max(max, Number(it.frecuencia||it.veces_salio||0)); });
+  items.forEach(function(it){
+    var n=it.numero||"--";
+    var v=Number(it.frecuencia||it.veces_salio||0);
+    var pct=Math.max(2, Math.round((v/max)*100));
+    var row=document.createElement("div");
+    row.className="nc-chart-row";
+    row.innerHTML='<div class="nc-chart-label">'+n+'</div>'
+      +'<div class="nc-chart-bar-wrap"><div class="nc-chart-bar" style="width:'+pct+'%"></div></div>'
+      +'<div class="nc-chart-val">'+v+'</div>';
+    wrap.appendChild(row);
+  });
+}
+function renderChartGeneric(targetId, items, labelKey, valueKey){
+  var wrap=qs(targetId);
+  if(!wrap) return;
+  if(!items||!items.length){
+    wrap.innerHTML='<div class="lim-muted">Sin datos para gráfico.</div>';
+    return;
+  }
+  wrap.innerHTML="";
+  var max=1;
+  items.forEach(function(it){ max=Math.max(max, Number(it[valueKey]||0)); });
+  items.forEach(function(it){
+    var n=String(it[labelKey]||"—");
+    var v=Number(it[valueKey]||0);
+    var pct=Math.max(2, Math.round((v/max)*100));
+    var row=document.createElement("div");
+    row.className="nc-chart-row";
+    row.innerHTML='<div class="nc-chart-label">'+n+'</div>'
+      +'<div class="nc-chart-bar-wrap"><div class="nc-chart-bar" style="width:'+pct+'%"></div></div>'
+      +'<div class="nc-chart-val">'+v+'</div>';
+    wrap.appendChild(row);
+  });
+}
+function cargarHotDashboard(){
+  var bid=bancaSeleccionada();
+  var q="/api/admin/limites/global?vista=numeros_calientes_dashboard";
+  if(bid){ q+="&banca_id="+encodeURIComponent(String(bid)); }
+  api("GET",q).then(function(d){
+    if(!d.ok){
+      flash("Error cargando estadísticas de números calientes.", false);
+      return;
+    }
+    if(d.counts){ updateTabCounters(d.counts); }
+    renderSimpleTop("ncTopFreqBody", d.top_frecuentes_10||[], "frecuentes");
+    renderSimpleTop("ncTopRecentBody", d.top_recientes_10||[], "recientes");
+    renderSimpleTop("ncTopRepeatedBody", d.top_repetidos_10||[], "repetidos");
+    renderSimpleTop("ncTopHotBody", d.top_frecuentes_10||[], "hot");
+    renderSimpleTop("ncTopColdBody", d.top_frios_10||[], "cold");
+    renderSimpleTop("ncTopTrendBody", d.top_tendencia_10||[], "trend");
+    renderLotteryStats(d.por_loteria||[]);
+    renderTopChart(d.chart_top20||[]);
+    renderChartGeneric("ncChartHotLottery", d.chart_calientes_loteria||[], "label", "value");
+    renderChartGeneric("ncChartTrend30", d.chart_tendencia_30d||[], "label", "value");
+    renderChartGeneric("ncChartColdLottery", d.chart_frios_loteria||[], "label", "value");
+    renderChartGeneric("ncChartBlockedLottery", d.chart_bloqueados_loteria||[], "label", "value");
+    renderImportRuns(d.import_runs||[]);
+    var msg=d.recomendacion||"";
+    if(msg){
+      setHistorialHint(msg);
+    }else{
+      setHistorialHint("Historial actual: "+Number(d.historial_total||0)+" sorteos.");
+    }
+  }).catch(function(){
+    flash("Error de red cargando estadísticas de números calientes.", false);
+  });
+}
+function recalcularHot(){
+  var btn=qs("btnNcRecalcular");
+  btn.disabled=true; btn.textContent="Recalculando...";
+  api("POST","/api/admin/limites/global",{accion:"numeros_calientes_recalcular"}).then(function(d){
+    if(d.ok){
+      flash("✅ Números calientes recalculados.", true);
+      hotState.page=1;
+      cargarHotStats(false);
+      cargarHotDashboard();
+      if(typeof window.refreshAdminAlertasRiesgo==="function"){
+        setTimeout(function(){ window.refreshAdminAlertasRiesgo(); }, 800);
+      }
+    }else{
+      flash("Error: "+(d.error||"No se pudo recalcular"), false);
+    }
+  }).finally(function(){
+    btn.disabled=false; btn.textContent="Recalcular ahora";
+  });
+}
+function importarYRecalcularHot(){
+  var btn=qs("btnNcImportar");
+  var info=qs("ncImportInfo");
+  btnLoading(btn,true,"Importando y recalculando...","Importar resultados y recalcular");
+  if(info){ info.textContent="Importando resultados reales y recalculando números calientes..."; }
+  api("POST","/api/admin/limites/global",{accion:"numeros_calientes_importar"}).then(function(d){
+    if(d.ok){
+      var resumenTxt = "Importados nuevos: "+Number(d.importados||0)
+        +" | Guardados: "+Number(d.guardados||0)
+        +" | Actualizados: "+Number(d.actualizados||0)
+        +" | Historial total: "+Number(d.historial_total||0)
+        +" | Números calientes detectados: "+Number((d.resumen&&d.resumen.total)||0);
+      if(info){ info.textContent=resumenTxt; }
+      if(d.import_error){
+        var ie=d.import_error_detail||"No se pudieron importar resultados desde la fuente actual.";
+        toast("❌ "+ie, false, 6500);
+        flash(ie, false);
+      }else if(d.insufficient_history){
+        var hm=d.history_message||("No hay historial suficiente. Se importaron "+Number(d.importados||0)+" resultados. Necesitas más resultados para detectar números calientes.");
+        toast(hm, true, 7000);
+        flash(hm, true);
+      }else{
+        toast("Resultados importados y números calientes recalculados", true, 3500);
+        flash("✅ Resultados importados y números calientes recalculados", true);
+      }
+      hotState.page=1;
+      cargarHotStats(false);
+      cargarHotDashboard();
+      if(typeof window.refreshAdminAlertasRiesgo==="function"){
+        setTimeout(function(){ window.refreshAdminAlertasRiesgo(); }, 800);
+      }
+    }else{
+      var detail=d.error?(" Detalle: "+d.error):"";
+      if(info){ info.textContent=""; }
+      toast("❌ Error al importar/recalcular"+detail, false, 6000);
+      flash("Error: "+(d.error||"No se pudo importar/recalcular"), false);
+    }
+  }).catch(function(e){
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    if(info){ info.textContent=""; }
+    toast("❌ Error al importar/recalcular"+detail, false, 6000);
+  }).finally(function(){
+    btnLoading(btn,false,"","Importar resultados y recalcular");
+  });
+}
+function stopNcFullPolling(){
+  if(ncFullPollTimer){
+    clearInterval(ncFullPollTimer);
+    ncFullPollTimer=null;
+  }
+}
+function renderNcFullProgress(state){
+  var wrap=qs("ncFullProgressWrap");
+  var fill=qs("ncFullProgressFill");
+  var txt=qs("ncFullProgressText");
+  var lots=qs("ncFullProgressLots");
+  var info=qs("ncImportInfo");
+  var btn=qs("btnNcImportarFull");
+  if(!wrap||!fill||!txt||!lots||!btn) return;
+  var running=!!(state&&state.running);
+  var phase=String((state&&state.phase)||"");
+  var hasData=running || phase==="completado" || phase==="error";
+  wrap.classList.toggle("hidden", !hasData);
+  var pct=Math.max(0, Math.min(100, Number((state&&state.progress_pct)||0)));
+  fill.style.width=pct+"%";
+  txt.textContent="Progreso total: "+pct+"%";
+  var map=(state&&state.por_loteria)||{};
+  var names=["Nacional","Leidsa","Loteka","Real","La Primera","La Suerte Dominicana","Lotedom","King Lottery","Florida","New York","Anguila"];
+  lots.innerHTML="";
+  names.forEach(function(n){
+    var d=map[n]||{};
+    var p=Number(d.procesados||0);
+    var t=Number(d.total||0);
+    var line=document.createElement("div");
+    line.className="nc-progress-lot";
+    line.textContent=n+" "+p+"/"+(t>0?t:p);
+    lots.appendChild(line);
+  });
+  if(running){
+    btnLoading(btn,true,"Importando historial completo...","Actualizar historial completo");
+    var dp=Number((state&&state.dias_procesados)||0);
+    var dt=Number((state&&state.dias_totales)||0);
+    if(info){ info.textContent="Importando historial completo... "+dp+"/"+dt+" días analizados."; }
+    return;
+  }
+  btnLoading(btn,false,"","Actualizar historial completo");
+  if(phase==="completado"){
+    var msg=(state.message||"Historial actualizado correctamente.");
+    var ht=Number(state.historial_total||0);
+    var fin=state.finished_at||"";
+    var topH=(state.top_hot||[]).slice(0,3).join(", ");
+    var topT=(state.top_trend||[]).slice(0,3).join(", ");
+    var topC=(state.top_cold||[]).slice(0,3).join(", ");
+    if(info){
+      info.textContent="Historial importado: "+ht.toLocaleString("es-DO")+" sorteos | Última actualización: "+(fin||"—")
+        +" | Top calientes: "+(topH||"—")
+        +" | Top tendencia: "+(topT||"—")
+        +" | Top fríos: "+(topC||"—");
+    }
+    if(fin && ncFullNotifiedAt!==fin){
+      ncFullNotifiedAt=fin;
+      toast("Historial actualizado correctamente. Total sorteos analizados: "+Number(state.guardados||0), true, 6000);
+      flash(msg, true);
+      cargarHotStats(false);
+      cargarHotDashboard();
+      if(typeof window.refreshAdminAlertasRiesgo==="function"){
+        setTimeout(function(){ window.refreshAdminAlertasRiesgo(); }, 1200);
+      }
+    }
+    stopNcFullPolling();
+    return;
+  }
+  if(phase==="error"){
+    if(info){ info.textContent=(state.message||"Error importando historial completo."); }
+    stopNcFullPolling();
+  }
+}
+function pollNcFullProgress(){
+  api("GET","/api/admin/limites/global?vista=numeros_calientes_importar_completo_estado").then(function(d){
+    if(d&&d.ok){ renderNcFullProgress(d); }
+  }).catch(function(){});
+}
+function iniciarImportacionHistorialCompleto(){
+  var btn=qs("btnNcImportarFull");
+  if(!btn) return;
+  btnLoading(btn,true,"Preparando importación...","Actualizar historial completo");
+  api("POST","/api/admin/limites/global",{accion:"numeros_calientes_importar_completo"}).then(function(d){
+    if(d.ok){
+      renderNcFullProgress(d);
+      stopNcFullPolling();
+      ncFullPollTimer=setInterval(pollNcFullProgress, 3500);
+      pollNcFullProgress();
+      toast("Importación histórica iniciada.", true, 2600);
+    }else{
+      btnLoading(btn,false,"","Actualizar historial completo");
+      var detail=d.error?(" Detalle: "+d.error):"";
+      toast("❌ No se pudo iniciar la importación completa."+detail, false, 5500);
+      if(d&&d.phase){ renderNcFullProgress(d); }
+    }
+  }).catch(function(e){
+    btnLoading(btn,false,"","Actualizar historial completo");
+    var detail=(e&&e.message)?(" Detalle: "+e.message):"";
+    toast("❌ Error iniciando importación completa."+detail, false, 5500);
+  });
+}
+
+qs("fLottery").addEventListener("change", refrescarSorteos);
+qs("fNumSelect").addEventListener("change", syncNumeroSelector);
+qs("btnGuardarLim").addEventListener("click", guardarLimite);
+qs("btnVerCajero").addEventListener("click", togglePanel);
+qs("cBtnPrev").addEventListener("click", function(){ if(cajeroState.page>1){ cajeroState.page--; cargarLimites(); } });
+qs("cBtnNext").addEventListener("click", function(){ if(cajeroState.page<cajeroState.pages){ cajeroState.page++; cargarLimites(); } });
+qs("fBanca").addEventListener("change", function(){
+  if(cajeroState.open){ cajeroState.page=1; cargarLimites(); }
+  if(hotState.tab==="mas_calientes"||hotState.tab==="tendencia"||hotState.tab==="frios"||hotState.tab==="bloqueados"||hotState.tab==="riesgo"){ hotState.page=1; cargarHotStats(false); }
+  cargarHotDashboard();
+});
+qs("btnNcGuardar").addEventListener("click", guardarHotConfig);
+qs("btnNcRecalcular").addEventListener("click", recalcularHot);
+qs("btnNcImportar").addEventListener("click", importarYRecalcularHot);
+qs("btnNcImportarFull").addEventListener("click", iniciarImportacionHistorialCompleto);
+qs("btnNcBloqAltos").addEventListener("click", bloquearRiesgoAltoMasivo);
+qs("btnNcBloqMedios").addEventListener("click", bloquearRiesgoMedioMasivo);
+qs("btnNcDesbloqTodos").addEventListener("click", desbloquearTodosHot);
+qs("btnNcVerBloq").addEventListener("click", function(){ setHotTab("bloqueados"); });
+qs("ncBtnPrev").addEventListener("click", function(){ if(hotState.page>1){ hotState.page--; cargarHotStats(false); } });
+qs("ncBtnNext").addEventListener("click", function(){ if(hotState.page<hotState.pages){ hotState.page++; cargarHotStats(false); } });
+document.querySelectorAll("[data-nc-tab]").forEach(function(btn){
+  btn.addEventListener("click", function(){ setHotTab(btn.getAttribute("data-nc-tab")||"mas_calientes"); });
+});
+document.querySelectorAll("[data-kpi-tab]").forEach(function(card){
+  card.addEventListener("click", function(){ setHotTab(card.getAttribute("data-kpi-tab")||"mas_calientes"); });
+});
+qs("ncHistoryClose").addEventListener("click", closeHistoryModal);
+qs("ncHistoryModal").addEventListener("click", function(e){
+  if(e.target===qs("ncHistoryModal")) closeHistoryModal();
+});
+qs("ncLimitClose").addEventListener("click", cerrarModalLimitar);
+qs("ncLimitModal").addEventListener("click", function(e){
+  if(e.target===qs("ncLimitModal")) cerrarModalLimitar();
+});
+qs("ncLimitSave").addEventListener("click", aplicarLimiteNumero);
+document.querySelectorAll("[data-limit-preset]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    qs("ncLimitCustom").value=String(btn.getAttribute("data-limit-preset")||"");
+  });
+});
+refrescarSorteos();
+syncNumeroSelector();
+loadHotConfig();
+var _initTab=(new URLSearchParams(location.search).get("tab")||"mas_calientes").toLowerCase();
+if(_initTab==="calientes") _initTab="mas_calientes";
+setHotTab(_initTab);
+cargarHotDashboard();
+pollNcFullProgress();
+ncFullPollTimer=setInterval(pollNcFullProgress, 6000);
+window.abrirModalLimitar=abrirModalLimitar;
+window.bloquearNumeroCaliente=bloquearNumeroCaliente;
+window.cargarHotDashboard=cargarHotDashboard;
+window.flash=flash;
+window.toast=toast;
+})();
+</script>

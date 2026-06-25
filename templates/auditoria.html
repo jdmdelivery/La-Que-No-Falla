@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría — Banca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+:root {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #002D62;
+  --shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  margin: 0;
+  padding: 24px 20px 48px;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.aud-wrap { max-width: 1280px; margin: 0 auto; }
+.aud-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.aud-head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+.aud-head p {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.5;
+}
+.aud-links { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.aud-links a {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+.aud-links a:hover { text-decoration: underline; }
+
+.aud-filters {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px 16px;
+  align-items: end;
+}
+.aud-filters label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.aud-filters input,
+.aud-filters select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  background: #f8fafc;
+  color: var(--text);
+}
+.aud-filters input:focus,
+.aud-filters select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.12);
+}
+.aud-filters-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.aud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+.aud-btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.aud-btn-primary:hover { filter: brightness(1.08); }
+.aud-btn-ghost {
+  background: #f1f5f9;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.aud-btn-ghost:hover { background: #e2e8f0; }
+
+.err {
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid #fecaca;
+  margin-bottom: 18px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.aud-table-wrap {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.aud-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.aud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  min-width: 920px;
+}
+.aud-table thead th {
+  text-align: left;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #003a7a 0%, #002D62 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.aud-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+.aud-table tbody tr:hover { background: #f8fafc; }
+.aud-table tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  color: var(--text);
+}
+.aud-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.aud-row-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+.aud-user { font-weight: 600; color: var(--text); }
+.aud-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.aud-num { font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
+.aud-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.aud-badge--blue { background: #dbeafe; color: #1d4ed8; }
+.aud-badge--red { background: #fee2e2; color: #b91c1c; }
+.aud-badge--green { background: #dcfce7; color: #15803d; }
+.aud-badge--amber { background: #fef3c7; color: #b45309; }
+.aud-badge--purple { background: #ede9fe; color: #6d28d9; }
+.aud-badge--teal { background: #ccfbf1; color: #0f766e; }
+.aud-badge--muted { background: #f1f5f9; color: #475569; }
+.aud-btn-sm {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+}
+.aud-btn-sm:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+/* Modal */
+.aud-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+}
+.aud-modal.aud-modal--open { display: flex; }
+.aud-modal-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  max-width: 720px;
+  width: 100%;
+  max-height: min(86vh, 640px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+}
+.aud-modal-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.aud-modal-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+.aud-modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.aud-modal-close:hover { background: #e2e8f0; color: var(--text); }
+.aud-modal-body {
+  padding: 16px 20px 20px;
+  overflow: auto;
+  flex: 1;
+}
+.aud-modal-section { margin-bottom: 18px; }
+.aud-modal-section:last-child { margin-bottom: 0; }
+.aud-modal-section h3 {
+  margin: 0 0 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.aud-modal-section pre {
+  margin: 0;
+  padding: 14px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+@media (max-width: 640px) {
+  body { padding: 16px 12px 32px; }
+  .aud-filters-actions { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+<div class="aud-wrap">
+  <header class="aud-head">
+    <div>
+      <h1><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Auditoría</h1>
+      <p>Historial de acciones sobre pagos al cajero, ajustes y cambios sensibles. Use filtros para acotar resultados.</p>
+    </div>
+    <nav class="aud-links" aria-label="Enlaces">
+      <a href="/admin/pagos_cajero"><i class="fa-solid fa-arrow-left"></i> Pagos cajero</a>
+      <a href="/admin">Panel admin</a>
+      <a href="/venta">Inicio</a>
+    </nav>
+  </header>
+
+  {% if err %}
+  <div class="err" role="alert">{{ err }}</div>
+  {% endif %}
+
+  <form class="aud-filters" method="get" action="{{ url_for('admin_auditoria') }}">
+    <div>
+      <label for="f-u">Usuario</label>
+      <input type="text" id="f-u" name="u" value="{{ filter_u or '' }}" placeholder="Ej. admin" autocomplete="off">
+    </div>
+    <div>
+      <label for="f-desde">Desde</label>
+      <input type="date" id="f-desde" name="desde" value="{{ filter_desde or '' }}">
+    </div>
+    <div>
+      <label for="f-hasta">Hasta</label>
+      <input type="date" id="f-hasta" name="hasta" value="{{ filter_hasta or '' }}">
+    </div>
+    <div>
+      <label for="f-tipo">Tipo de acción</label>
+      <select id="f-tipo" name="tipo">
+        <option value="">Todos</option>
+        {% for t in tipos_accion or [] %}
+        <option value="{{ t }}" {% if filter_tipo == t %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="aud-filters-actions">
+      <button type="submit" class="aud-btn aud-btn-primary"><i class="fa-solid fa-filter"></i> Aplicar</button>
+      <a class="aud-btn aud-btn-ghost" href="{{ url_for('admin_auditoria') }}">Limpiar</a>
+    </div>
+  </form>
+
+  {% if logs %}
+  <div class="aud-table-wrap">
+    <div class="aud-table-scroll">
+      <table class="aud-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Cajero / nombre</th>
+            <th>Monto</th>
+            <th>Balance antes</th>
+            <th>Balance después</th>
+            <th>Fecha</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in logs %}
+          <tr>
+            <td>
+              <div class="aud-row-main">
+                <span class="aud-row-icon" aria-hidden="true"><i class="fa-solid {{ row.ui_icon }}" aria-hidden="true"></i></span>
+                <div>
+                  <div class="aud-user">{{ row.get("usuario") or "—" }}</div>
+                  <div class="aud-meta">{{ row.get("tabla") or "—" }}{% if row.get("registro_id") is not none %} · ID {{ row.get("registro_id") }}{% endif %}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="{{ row.ui_badge_class }}">{{ row.get("accion") or "—" }}</span></td>
+            <td class="aud-num">{{ row.ui_cajero }}</td>
+            <td class="aud-num">{{ row.ui_monto }}</td>
+            <td class="aud-num">{{ row.ui_balance_antes }}</td>
+            <td class="aud-num">{{ row.ui_balance_despues }}</td>
+            <td class="aud-num" style="min-width:160px">{{ row.fecha_fmt }}</td>
+            <td>
+              <button type="button" class="aud-btn-sm aud-detail-btn" data-idx="{{ loop.index0 }}">Ver detalles</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% elif not err %}
+  <div class="aud-table-wrap"><p class="empty">No hay registros de auditoría con los filtros actuales.</p></div>
+  {% endif %}
+</div>
+
+<script type="application/json" id="aud-details-json">{{ audit_details | tojson }}</script>
+
+<div id="aud-modal" class="aud-modal" role="dialog" aria-modal="true" aria-labelledby="aud-modal-title" aria-hidden="true">
+  <div class="aud-modal-box">
+    <div class="aud-modal-head">
+      <h2 id="aud-modal-title">Detalle JSON</h2>
+      <button type="button" class="aud-modal-close" id="aud-modal-x" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="aud-modal-body">
+      <div class="aud-modal-section">
+        <h3>Antes</h3>
+        <pre id="aud-pre-antes"></pre>
+      </div>
+      <div class="aud-modal-section">
+        <h3>Después</h3>
+        <pre id="aud-pre-despues"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var raw = document.getElementById("aud-details-json");
+  var details = [];
+  try {
+    details = raw ? JSON.parse(raw.textContent) : [];
+  } catch (e) {
+    details = [];
+  }
+  var modal = document.getElementById("aud-modal");
+  var preA = document.getElementById("aud-pre-antes");
+  var preB = document.getElementById("aud-pre-despues");
+  function pretty(v) {
+    if (v === null || v === undefined) return "—";
+    try {
+      return JSON.stringify(v, null, 2);
+    } catch (e2) {
+      return String(v);
+    }
+  }
+  function openModal(idx) {
+    var row = details[idx];
+    if (!row) return;
+    preA.textContent = pretty(row.antes);
+    preB.textContent = pretty(row.despues);
+    modal.classList.add("aud-modal--open");
+    modal.setAttribute("aria-hidden", "false");
+    document.getElementById("aud-modal-x").focus();
+  }
+  function closeModal() {
+    modal.classList.remove("aud-modal--open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+  document.querySelectorAll(".aud-detail-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var i = parseInt(btn.getAttribute("data-idx"), 10);
+      if (!isNaN(i)) openModal(i);
+    });
+  });
+  document.getElementById("aud-modal-x").addEventListener("click", closeModal);
+  modal.addEventListener("click", function (ev) {
+    if (ev.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && modal.classList.contains("aud-modal--open")) closeModal();
+  });
+})();
+</script>
+</body>
+</html>

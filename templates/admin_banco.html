@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🏦 Banco General</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: #101c33;
+      --gold: #60a5fa;
+      --gold-dim: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #f8fafc;
+      --muted: #d8e3f2;
+      --border: rgba(96, 165, 250, 0.28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(96,165,250,.14), transparent), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+    }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin: 0 0 8px; color: var(--gold); }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .card-kpi {
+      background: linear-gradient(145deg, #141414 0%, #0a0a0a 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .card-kpi:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212,175,55,.08); }
+    .card-kpi h3 { margin: 0 0 8px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .card-kpi .val { font-size: 1.65rem; font-weight: 800; }
+    .card-kpi.featured .val { color: var(--gold); font-size: 2rem; }
+    .card-kpi.money .val { color: var(--green); }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;
+    }
+    .btn {
+      padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border);
+      background: #172947; color: var(--text); font-weight: 700; cursor: pointer;
+      font-size: 0.85rem; transition: background .15s;
+    }
+    .btn:hover { background: #1f3760; }
+    .btn-primary { background: linear-gradient(135deg, var(--gold-dim), var(--gold)); color: #fff; border: none; }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .panel h2 { margin: 0 0 16px; font-size: 1.1rem; color: var(--gold); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { text-align: left; padding: 10px 8px; color: var(--gold-dim); border-bottom: 1px solid var(--border); }
+    td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    tr:hover td { background: rgba(96,165,250,.12); }
+    .bal-pos { color: var(--green); font-weight: 800; }
+    .bal-neg { color: var(--red); font-weight: 800; }
+    .flash { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-weight: 600; }
+    .flash.ok { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .flash.err { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+    .modal-bg {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      align-items: center; justify-content: center; z-index: 100; padding: 16px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: #0f1c35; border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px; width: 100%; max-width: 420px;
+    }
+    .modal h3 { margin: 0 0 16px; color: var(--gold); }
+    .modal label { display: block; font-size: 0.8rem; color: var(--muted); margin: 12px 0 4px; }
+    .modal input, .modal select, .modal textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333;
+      background: #0b1629; color: var(--text); font-size: 1rem;
+    }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .tipo-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; background: #222; color: var(--muted); }
+    @media (max-width: 600px) {
+      .card-kpi .val { font-size: 1.35rem; }
+      .card-kpi.featured .val { font-size: 1.5rem; }
+      body { padding: 12px 10px 80px; }
+      .toolbar { flex-direction: column; }
+      .btn { width: 100%; min-height: 48px; font-size: 16px; }
+      .panel { padding: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { font-size: 0.8rem; min-width: 480px; }
+      .modal-bg { align-items: flex-end; padding: 0; }
+      .modal { max-width: 100%; border-radius: 16px 16px 0 0; max-height: 92dvh; overflow-y: auto; }
+      .modal input, .modal select, .modal textarea { font-size: 16px; min-height: 48px; }
+    }
+    @media (max-width: 390px) {
+      h1 { font-size: 1.35rem; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p><a href="/admin">← Panel admin</a> · <a href="/admin/banco_cajeros">Banco cajeros (legacy)</a></p>
+    <h1>🏦 Banco General</h1>
+    <p class="sub">
+      Un solo banco del negocio. Los cajeros tienen subcuenta virtual (ventas − premios − entregas + fondos).
+      <strong>Entrega cajero → admin no reduce el banco general</strong> (el dinero ya es del negocio).
+    </p>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+    <div class="flash {% if cat == 'error' %}err{% else %}ok{% endif %}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <div class="cards">
+      <div class="card-kpi featured">
+        <h3>🏦 Banco General</h3>
+        <div class="val">RD$ {{ "{:,.2f}".format(resumen.balance_general) }}</div>
+      </div>
+      <div class="card-kpi money">
+        <h3>📈 Ventas hoy</h3>
+        <div class="val">RD$ {{ "{:,.2f}".format(resumen.ventas_hoy) }}</div>
+      </div>
+      <div class="card-kpi">
+        <h3>💸 Premios pagados hoy</h3>
+        <div class="val" style="color:#f87171">RD$ {{ "{:,.2f}".format(resumen.premios_hoy) }}</div>
+      </div>
+      <div class="card-kpi money">
+        <h3>👥 Dinero en cajeros</h3>
+        <div class="val">RD$ {{ "{:,.2f}".format(resumen.dinero_en_cajeros) }}</div>
+        <p style="font-size:11px;color:var(--muted);margin:8px 0 0">Pendiente de entregar físicamente al admin.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      {% if not resumen.configurado %}
+      <button type="button" class="btn btn-primary" onclick="openModal('modalInicial')">Configurar banco inicial</button>
+      {% endif %}
+      <button type="button" class="btn" onclick="openModal('modalFondo')">Entregar fondo a cajero</button>
+      <button type="button" class="btn" onclick="openModal('modalEntrega')">Registrar entrega cajero</button>
+      <button type="button" class="btn" onclick="openModal('modalRetiro')">Retiro banco</button>
+      <button type="button" class="btn" onclick="openModal('modalAjuste')">Ajuste manual</button>
+    </div>
+
+    <div class="panel">
+      <h2>👥 Cajeros</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Cajero</th>
+            <th style="text-align:right">Ventas</th>
+            <th style="text-align:right">Premios</th>
+            <th style="text-align:right">Entregado</th>
+            <th style="text-align:right">Fondos</th>
+            <th style="text-align:right">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cajeros %}
+          <tr>
+            <td>{{ c.nombre }}</td>
+            <td style="text-align:right">RD$ {{ "{:,.2f}".format(c.ventas) }}</td>
+            <td style="text-align:right">RD$ {{ "{:,.2f}".format(c.premios) }}</td>
+            <td style="text-align:right">RD$ {{ "{:,.2f}".format(c.entregado) }}</td>
+            <td style="text-align:right">RD$ {{ "{:,.2f}".format(c.fondos) }}</td>
+            <td style="text-align:right" class="{% if c.balance > 0 %}bal-pos{% elif c.balance < 0 %}bal-neg{% endif %}">
+              RD$ {{ "{:,.2f}".format(c.balance) }}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" style="color:var(--muted)">Sin cajeros registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>📜 Historial global</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cajero</th>
+            <th>Tipo</th>
+            <th style="text-align:right">Monto</th>
+            <th style="text-align:right">Banco antes</th>
+            <th style="text-align:right">Banco después</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in historial %}
+          <tr>
+            <td>{{ h.fecha }}</td>
+            <td>{{ h.cajero }}</td>
+            <td><span class="tipo-badge">{{ h.tipo }}</span></td>
+            <td style="text-align:right">RD$ {{ "{:,.2f}".format(h.monto) }}</td>
+            <td style="text-align:right">{% if h.afecta_banco %}RD$ {{ "{:,.2f}".format(h.banco_antes) }}{% else %}—{% endif %}</td>
+            <td style="text-align:right">{% if h.afecta_banco %}RD$ {{ "{:,.2f}".format(h.banco_despues) }}{% else %}—{% endif %}</td>
+            <td>{{ h.nota }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="color:var(--muted)">Sin movimientos aún.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="modalInicial" class="modal-bg">
+    <div class="modal">
+      <h3>Balance inicial</h3>
+      <form method="post">
+        <input type="hidden" name="accion" value="balance_inicial" />
+        <label>Monto RD$</label>
+        <input type="number" name="monto" step="0.01" min="0" required />
+        <label>Nota</label>
+        <textarea name="nota" rows="2" placeholder="Apertura del banco"></textarea>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+          <button type="button" class="btn" onclick="closeModal('modalInicial')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalFondo" class="modal-bg">
+    <div class="modal">
+      <h3>Entregar fondo a cajero</h3>
+      <form method="post">
+        <input type="hidden" name="accion" value="fondo_cajero" />
+        <label>Cajero</label>
+        <select name="cajero_id" required>
+          <option value="">— Seleccionar —</option>
+          {% for c in cajeros %}
+          <option value="{{ c.cajero_id }}">{{ c.nombre }}</option>
+          {% endfor %}
+        </select>
+        <label>Monto RD$</label>
+        <input type="number" name="monto" step="0.01" min="0.01" required />
+        <label>Nota</label>
+        <textarea name="nota" rows="2"></textarea>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+          <button type="button" class="btn" onclick="closeModal('modalFondo')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalEntrega" class="modal-bg">
+    <div class="modal">
+      <h3>Entrega cajero → admin</h3>
+      <form method="post">
+        <input type="hidden" name="accion" value="entrega_cajero" />
+        <label>Cajero</label>
+        <select name="cajero_id" required>
+          <option value="">— Seleccionar —</option>
+          {% for c in cajeros %}
+          <option value="{{ c.cajero_id }}">{{ c.nombre }} (bal. RD$ {{ "{:,.2f}".format(c.balance) }})</option>
+          {% endfor %}
+        </select>
+        <label>Monto RD$</label>
+        <input type="number" name="monto" step="0.01" min="0.01" required />
+        <label>Nota</label>
+        <textarea name="nota" rows="2"></textarea>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+          <button type="button" class="btn" onclick="closeModal('modalEntrega')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalRetiro" class="modal-bg">
+    <div class="modal">
+      <h3>Retiro del banco general</h3>
+      <form method="post">
+        <input type="hidden" name="accion" value="retiro" />
+        <label>Monto RD$</label>
+        <input type="number" name="monto" step="0.01" min="0.01" required />
+        <label>Nota</label>
+        <textarea name="nota" rows="2" required></textarea>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+          <button type="button" class="btn" onclick="closeModal('modalRetiro')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalAjuste" class="modal-bg">
+    <div class="modal">
+      <h3>Ajuste manual</h3>
+      <form method="post">
+        <input type="hidden" name="accion" value="ajuste" />
+        <label>Dirección</label>
+        <select name="suma_o_resta" required>
+          <option value="+">Sumar (+)</option>
+          <option value="-">Restar (−)</option>
+        </select>
+        <label>¿Afecta banco general?</label>
+        <select name="afecta_banco" required>
+          <option value="1">Sí — banco general</option>
+          <option value="0">No — solo cajero</option>
+        </select>
+        <label>Cajero (si no afecta banco, obligatorio)</label>
+        <select name="cajero_id">
+          <option value="">— Ninguno —</option>
+          {% for c in cajeros %}
+          <option value="{{ c.cajero_id }}">{{ c.nombre }}</option>
+          {% endfor %}
+        </select>
+        <label>Monto RD$</label>
+        <input type="number" name="monto" step="0.01" min="0.01" required />
+        <label>Nota</label>
+        <textarea name="nota" rows="2" required></textarea>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+          <button type="button" class="btn" onclick="closeModal('modalAjuste')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.modal-bg').forEach(function(el) {
+      el.addEventListener('click', function(e) { if (e.target === el) el.classList.remove('open'); });
+    });
+  </script>
+</body>
+</html>
