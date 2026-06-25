@@ -1,6 +1,6 @@
 /**
- * Mobile-first fixes — iPhone 390px / Android 360px
- * No business logic; layout & touch only.
+ * Mobile responsive — LA QUE NO FALLA
+ * Desktop: sin cambios (reglas solo dentro de @media max-width).
  */
 
 html.ui-modern,
@@ -9,26 +9,21 @@ body.ui-modern {
   max-width: 100vw;
 }
 
-/* ===== Touch targets (min 44px) ===== */
+/* ===== Touch targets (desktop-safe defaults) ===== */
 body.ui-modern .menu-btn,
 body.ui-modern .logout-btn,
 body.ui-modern .ar-bell-btn,
 body.ui-modern .sb-link,
-body.ui-modern .venta-btn,
 body.ui-modern button,
-body.ui-modern .lim-btn,
-body.ui-modern .admin-btn,
-body.ui-modern .gnr-btn-imprimir,
 body.ui-modern input[type="submit"],
 body.ui-modern input[type="button"] {
-  min-height: 44px;
   touch-action: manipulation;
 }
 
 body.ui-modern input,
 body.ui-modern select,
 body.ui-modern textarea {
-  font-size: 16px !important; /* evita zoom iOS Safari */
+  font-size: 16px !important;
   max-width: 100%;
 }
 
@@ -39,36 +34,7 @@ body.ui-modern.sidebar-open {
   height: 100%;
 }
 
-/* ===== Topbar / campanita + acciones derecha ===== */
-@media (max-width: 480px) {
-  body.ui-modern .topbar-actions {
-    top: calc(6px + env(safe-area-inset-top, 0px));
-    right: max(8px, env(safe-area-inset-right, 0px));
-    min-width: 80px;
-    max-width: 100px;
-    gap: 5px;
-  }
-  body.ui-modern .ar-bell-btn,
-  body.ui-modern .logout-btn {
-    padding: 8px 10px;
-    font-size: 12px;
-    min-height: 40px;
-  }
-  body.ui-modern .ar-bell-btn__icon {
-    font-size: 15px;
-  }
-  body.ui-modern .menu-btn {
-    font-size: 24px;
-    padding: 8px 12px;
-    min-width: 44px;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-/* ===== Tablas: scroll contenido o tarjetas ===== */
+/* ===== Tablas móvil ===== */
 body.ui-modern .tabla-resultados,
 body.ui-modern .lim-table-wrap,
 body.ui-modern .modern-table-wrap,
@@ -76,18 +42,9 @@ body.ui-modern .gnr-table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
-  margin-left: 0;
-  margin-right: 0;
 }
 
 @media (max-width: 640px) {
-  body.ui-modern .tabla-resultados-main,
-  body.ui-modern .tabla-resultados table {
-    min-width: 0 !important;
-    width: 100% !important;
-  }
-
-  /* Resultados ganadores: filas apiladas */
   body.ui-modern.page-resultados .tabla-resultados-main thead {
     display: none;
   }
@@ -105,141 +62,16 @@ body.ui-modern .gnr-table-scroll {
     border: none;
     text-align: left;
   }
-  body.ui-modern.page-resultados .tabla-resultados-main tbody td::before {
-    content: attr(data-label);
-    display: block;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: #94a3b8;
-    margin-bottom: 4px;
-  }
-  body.ui-modern.page-resultados .tabla-resultados-main tbody td.res-lot-col::before {
-    content: "Lotería";
-  }
-  body.ui-modern.page-resultados .tabla-resultados-main tbody td:nth-child(2)::before {
-    content: "Resultados";
-  }
-  body.ui-modern.page-resultados .tabla-resultados-main tbody td:nth-child(3)::before {
-    content: "Fecha";
-  }
-  body.ui-modern.page-resultados .tabla-resultados-main tbody td:nth-child(4)::before {
-    content: "Cierre";
-  }
-
-  /* Ganadores pendientes tabla ancha */
-  body.ui-modern .tabla-ganadores-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  body.ui-modern .tabla-ganadores-wrap table {
-    min-width: 0 !important;
-  }
-}
-
-/* ===== Límites / números calientes ===== */
-@media (max-width: 640px) {
+  body.ui-modern.page-limits .lim-wrap,
   body.ui-modern .lim-wrap {
     padding: 12px 10px 80px;
   }
-  body.ui-modern .lim-grid,
-  body.ui-modern .nc-grid-3,
-  body.ui-modern .nc-grid-4,
-  body.ui-modern .nc-kpi-grid {
-    grid-template-columns: 1fr !important;
-  }
-  body.ui-modern .lim-actions {
-    flex-direction: column;
-  }
-  body.ui-modern .lim-actions .lim-btn {
-    width: 100%;
-    min-height: 48px;
-  }
-  body.ui-modern .lim-table-wrap {
-    max-height: none;
-    overflow-x: auto;
-  }
-  body.ui-modern .nc-modal-box {
-    width: 100%;
-    max-height: 90dvh;
-    margin: 0;
-    border-radius: 14px 14px 0 0;
-    align-self: flex-end;
-  }
-  body.ui-modern .nc-modal {
-    align-items: flex-end;
-    padding: 0;
-  }
-}
-
-/* ===== Dashboard admin ===== */
-@media (max-width: 640px) {
   body.ui-modern.page-dashboard .dashboard {
     padding: 8px 10px 100px !important;
   }
   body.ui-modern.page-dashboard .metrics {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
-  }
-  body.ui-modern.page-dashboard .metric-card {
-    padding: 14px !important;
-  }
-  body.ui-modern.page-dashboard .metric {
-    font-size: 1.5rem !important;
-  }
-  body.ui-modern.page-dashboard .panel {
-    padding: 12px !important;
-  }
-  body.ui-modern .ar-panel-wrap {
-    margin: 0 0 12px !important;
-    padding: 12px !important;
-  }
-  body.ui-modern .ar-bell-dropdown {
-    width: calc(100vw - 16px);
-    right: 8px;
-    max-height: 70dvh;
-  }
-  body.ui-modern .ar-toast-wrap {
-    left: 8px;
-    right: 8px;
-    transform: none;
-    max-width: none;
-  }
-}
-
-/* ===== Venta POS ===== */
-@media (max-width: 480px) {
-  body.ui-modern.page-venta {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  body.ui-modern.page-venta .venta-wrap {
-    padding: 8px 10px 16px !important;
-  }
-  body.ui-modern.page-venta .venta-pos-head h2 {
-    font-size: 1.05rem !important;
-  }
-  body.ui-modern.page-venta .venta-pos-head {
-    flex-direction: column;
-    align-items: stretch !important;
-    gap: 8px;
-  }
-  body.ui-modern.page-venta .venta-lot-catalog {
-    max-height: min(380px, 50dvh) !important;
-  }
-  body.ui-modern.page-venta .venta-cart-item {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  body.ui-modern.page-venta .venta-btn-realizar,
-  body.ui-modern.page-venta .venta-btn-agregar,
-  body.ui-modern.page-venta #ventaBtnAgregar {
-    width: 100%;
-    min-height: 52px;
-    font-size: 16px !important;
-  }
-  body.ui-modern.page-venta .venta-field input,
-  body.ui-modern.page-venta .venta-field select {
-    min-height: 48px;
   }
 }
 
@@ -265,105 +97,626 @@ body.ui-modern.page-login {
     max-width: 100% !important;
     border-radius: 20px;
   }
-  body.ui-modern.page-login .main-title {
-    font-size: clamp(22px, 6vw, 32px) !important;
-    margin-bottom: 20px;
-  }
-  body.ui-modern.page-login .logo-dr img {
-    width: 100px;
-  }
 }
 
-/* ===== Modales genéricos ===== */
-@media (max-width: 640px) {
-  body.ui-modern [id*="modal"],
-  body.ui-modern .modal-overlay {
-    padding: 8px !important;
-    align-items: flex-end !important;
+/* =============================================================================
+   MOBILE SHELL — max-width 768px (iPhone / Android)
+   Header flex, safe-area, ranking compacto, stats chips pequeños
+   ============================================================================= */
+@media (max-width: 768px) {
+  :root {
+    --mobile-topbar-main-h: 44px;
+    --mobile-topbar-stats-h: 34px;
+    --mobile-metas-h: 155px;
+    --metas-panel-h: 155px;
+    --vp-venta-topbar-h: 44px;
+    --vp-hero-logo-h: 0px;
+    --vp-metas-h: 155px;
   }
-  body.ui-modern [id*="modal"] > div,
-  body.ui-modern .modal-box {
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 92dvh !important;
-    overflow-y: auto !important;
-    border-radius: 16px 16px 0 0 !important;
-  }
-  /* Impresión / ticket preview */
-  body.ui-modern .ticket-preview-wrap,
-  body.ui-modern #ticketPrintFrame {
-    max-width: 100vw !important;
+
+  html.ui-modern,
+  body.ui-modern {
     overflow-x: hidden !important;
+    max-width: 100vw;
+    width: 100%;
   }
-}
 
-/* ===== Banco / cierres templates ===== */
-@media (max-width: 640px) {
-  .wrap,
-  body > .wrap {
-    padding: 12px 10px 80px !important;
+  /* Safe area — iPhone notch + legacy constant() */
+  body.ui-modern {
+    padding-left: max(0px, env(safe-area-inset-left), constant(safe-area-inset-left)) !important;
+    padding-right: max(0px, env(safe-area-inset-right), constant(safe-area-inset-right)) !important;
+    padding-top: calc(
+      var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + var(--mobile-metas-h)
+      + max(env(safe-area-inset-top), constant(safe-area-inset-top))
+    ) !important;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
   }
-  .cards {
-    grid-template-columns: 1fr !important;
-  }
-  table.responsive-stack thead {
-    display: none;
-  }
-  table.responsive-stack tbody tr {
-    display: block;
-    margin-bottom: 10px;
-    border: 1px solid rgba(96, 165, 250, 0.28);
-    border-radius: 10px;
-    padding: 10px;
-  }
-  table.responsive-stack tbody td {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 6px 0;
-    border: none;
-  }
-  table.responsive-stack tbody td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: #94a3b8;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-}
 
-/* ===== Admin límites grid números ===== */
-@media (max-width: 640px) {
-  body.ui-modern .grid-numeros {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+  body.ui-modern.page-venta,
+  body.ui-modern.page-venta:has(.brand-hero-plate),
+  body.ui-modern:has(.brand-hero-plate):not(.page-venta) {
+    padding-top: calc(
+      var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + var(--mobile-metas-h)
+      + max(env(safe-area-inset-top), constant(safe-area-inset-top))
+    ) !important;
   }
-  body.ui-modern .grid-numeros label {
-    padding: 10px 4px !important;
-    font-size: 13px;
-    min-height: 44px;
+
+  /* Hero plate duplicado — solo título en topbar */
+  body.ui-modern .brand-hero-plate {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+  }
+
+  /* ─── TOPBAR: menú | título | campana | salir ─── */
+  body.ui-modern .topbar,
+  body.ui-modern.page-venta .topbar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: grid !important;
+    grid-template-columns: 40px 1fr auto;
+    grid-template-rows: var(--mobile-topbar-main-h) var(--mobile-topbar-stats-h);
+    align-items: center;
+    gap: 0 6px;
+    min-height: calc(var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top))) !important;
+    height: auto !important;
+    max-height: none !important;
+    padding:
+      max(env(safe-area-inset-top), constant(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right), constant(safe-area-inset-right))
+      4px
+      max(10px, env(safe-area-inset-left), constant(safe-area-inset-left)) !important;
+    background: linear-gradient(180deg, rgba(10, 18, 32, 0.98), rgba(6, 10, 18, 0.99)) !important;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.22) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+    overflow: hidden;
+  }
+
+  body.ui-modern:has(.brand-hero-plate) .topbar .brand-center,
+  body.ui-modern .topbar-center .brand-center {
+    display: flex !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100%;
+    max-width: none !important;
+    pointer-events: auto;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  body.ui-modern .topbar-center {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
+  body.ui-modern .menu-btn {
+    grid-column: 1;
+    grid-row: 1;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 20px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  body.ui-modern .brand-badge {
+    padding: 4px 10px !important;
+    max-width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    gap: 4px !important;
+    border-radius: 10px !important;
+  }
+
+  body.ui-modern .brand-badge__emoji {
+    font-size: 14px !important;
+  }
+
+  body.ui-modern .brand-badge__text {
+    font-size: 10px !important;
+    letter-spacing: 0.06em !important;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Acciones derecha — NUNCA fixed/absolute encima del título */
+  body.ui-modern .topbar-actions {
+    grid-column: 3;
+    grid-row: 1;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    transform: none !important;
+    z-index: 2;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
+  body.ui-modern .topbar-actions .logout-btn,
+  body.ui-modern .topbar-actions .ar-bell-btn {
+    position: static !important;
+    transform: none !important;
+    flex-shrink: 0;
+  }
+
+  body.ui-modern .topbar-actions .logout-btn:hover,
+  body.ui-modern .topbar-actions .ar-bell-btn:hover {
+    transform: none !important;
+  }
+
+  /* Salir — pequeño, borde rojo, 34px */
+  body.ui-modern .logout-btn,
+  body.ui-modern.page-venta .logout-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    border: 1.5px solid #ef4444 !important;
+    color: #fecaca !important;
+    box-shadow: none !important;
+  }
+
+  body.ui-modern .logout-btn__icon {
+    font-size: 12px !important;
+    color: #f87171 !important;
+  }
+
+  body.ui-modern .logout-btn:active {
+    transform: scale(0.96) !important;
+    background: rgba(239, 68, 68, 0.12) !important;
+  }
+
+  /* Campana — siempre visible, separada de Salir */
+  body.ui-modern .ar-bell-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    border: 1.5px solid rgba(251, 191, 36, 0.55) !important;
+    background: rgba(30, 41, 59, 0.9) !important;
+    box-shadow: none !important;
+    font-size: 0 !important;
+  }
+
+  body.ui-modern .ar-bell-btn__icon {
+    font-size: 15px !important;
+    line-height: 1;
+  }
+
+  body.ui-modern .ar-bell-btn__count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 9px !important;
+    line-height: 16px;
+    border-radius: 999px;
+    background: #ef4444 !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  body.ui-modern .ar-bell-btn {
+    position: relative !important;
+  }
+
+  body.ui-modern .ar-bell-dropdown {
+    position: fixed !important;
+    top: calc(var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top)) + 6px) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    left: auto !important;
+    width: min(320px, calc(100vw - 20px)) !important;
+    max-height: 65dvh !important;
+    z-index: 10050 !important;
+  }
+
+  /* Stats chips — fila compacta bajo título */
+  body.ui-modern .topbar-stats,
+  body.ui-modern.page-venta .topbar-stats {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    display: flex !important;
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 2px !important;
+    margin: 0 !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1;
+  }
+
+  body.ui-modern .topbar-stats::-webkit-scrollbar {
+    display: none;
+  }
+
+  body.ui-modern .topbar-stat,
+  body.ui-modern.page-venta .topbar-stat {
+    flex: 1 1 0;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    padding: 4px 6px !important;
+    border-radius: 8px !important;
+    display: grid !important;
+    grid-template-columns: 12px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 5px;
+    row-gap: 1px;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: 1px solid rgba(96, 165, 250, 0.2) !important;
+    box-shadow: none !important;
+  }
+
+  body.ui-modern .topbar-stat i {
+    grid-row: 1 / span 2;
+    font-size: 10px !important;
+  }
+
+  body.ui-modern .topbar-stat__label {
+    font-size: 8px !important;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.ui-modern .topbar-stat__value {
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.ui-modern .topbar-stat[data-kind="noti"],
+  body.ui-modern .topbar-stat[data-kind="user"] {
+    display: none !important;
+  }
+
+  /* ─── RANKING compacto — filas, scroll interno ─── */
+  body.ui-modern .metas-panel,
+  body.ui-modern .metas-panel--premium,
+  body.ui-modern.page-venta .metas-panel--premium,
+  body.ui-modern:not(.page-venta) .metas-panel--premium {
+    position: fixed !important;
+    top: calc(
+      var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h)
+      + max(env(safe-area-inset-top), constant(safe-area-inset-top))
+    ) !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: var(--mobile-metas-h) !important;
+    max-height: var(--mobile-metas-h) !important;
+    padding: 4px max(8px, env(safe-area-inset-left)) 6px max(8px, env(safe-area-inset-right)) !important;
+    overflow: hidden !important;
+    z-index: 998 !important;
+  }
+
+  body.ui-modern .metas-panel__header {
+    padding: 0 4px 4px !important;
+    font-size: 9px !important;
+    line-height: 1.2;
+  }
+
+  body.ui-modern .metas-panel__title {
+    font-size: 9px !important;
+    letter-spacing: 0.04em;
+  }
+
+  body.ui-modern .metas-panel__body {
+    min-height: 0 !important;
+    flex: 1;
+    overflow: hidden !important;
+  }
+
+  body.ui-modern .metas-panel__fx,
+  body.ui-modern .metas-panel__arrow {
+    display: none !important;
+  }
+
+  body.ui-modern #metasPanelViewport,
+  body.ui-modern .ranking-container,
+  body.ui-modern .metas-panel__viewport {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    max-height: calc(var(--mobile-metas-h) - 28px) !important;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+  }
+
+  body.ui-modern #metasPanelTrack,
+  body.ui-modern .ranking-track {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 4px !important;
+    padding: 0 !important;
+    animation: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  body.ui-modern .ranking-track.ranking-track--live,
+  body.ui-modern .ranking-track[data-marquee-loop="1"] {
+    animation: none !important;
+  }
+
+  /* Tarjetas marquee desktop → filas compactas */
+  body.ui-modern .metas-panel--premium .cashier-card,
+  body.ui-modern .metas-panel--premium .meta-card,
+  body.ui-modern .meta-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    display: block !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+  }
+
+  body.ui-modern .meta-card--compact-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 8px !important;
+    background: rgba(15, 23, 42, 0.92) !important;
+    border: 1px solid rgba(96, 165, 250, 0.22) !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+    line-height: 1.2;
+    color: #e2e8f0 !important;
+  }
+
+  body.ui-modern .meta-row__dot {
+    flex: 0 0 14px;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  body.ui-modern .meta-row__name {
+    flex: 1 1 28%;
+    min-width: 0;
+    font-weight: 800;
+    font-size: 11px !important;
+    color: #f8fafc !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.ui-modern .meta-row__ventas,
+  body.ui-modern .meta-row__meta {
+    flex: 0 0 auto;
+    font-size: 10px !important;
+    color: #94a3b8 !important;
+    white-space: nowrap;
+  }
+
+  body.ui-modern .meta-row__pct {
+    flex: 0 0 auto;
+    font-size: 10px !important;
+    font-weight: 900;
+    color: #86efac !important;
+    min-width: 28px;
+    text-align: right;
+  }
+
+  body.ui-modern .meta-card__border-glow,
+  body.ui-modern .meta-card__inner,
+  body.ui-modern .meta-card__avatar,
+  body.ui-modern .meta-card__live,
+  body.ui-modern .meta-card__progress,
+  body.ui-modern .cashier-card__meta {
+    display: none !important;
+  }
+
+  body.ui-modern .metas-panel__empty {
+    font-size: 11px !important;
+    padding: 8px !important;
+    text-align: center;
+  }
+
+  /* ─── VENTA — más cerca del ranking ─── */
+  body.ui-modern.page-venta {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  body.ui-modern.page-venta .venta-wrap {
+    padding: 6px 10px 12px !important;
+  }
+
+  body.ui-modern.page-venta .venta-pos-shell {
+    padding: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  body.ui-modern.page-venta .venta-pos-head {
+    margin-bottom: 8px !important;
+    gap: 6px !important;
+  }
+
+  body.ui-modern.page-venta .venta-pos-head h2 {
+    font-size: 1rem !important;
+    margin: 0 !important;
+  }
+
+  body.ui-modern.page-venta .venta-pos-note {
+    margin-bottom: 8px !important;
+    font-size: 11px !important;
+  }
+
+  body.ui-modern.page-venta .venta-panel {
+    padding: 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  body.ui-modern.page-venta .venta-search {
+    width: 100% !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  body.ui-modern.page-venta .venta-lot-catalog {
+    max-height: min(360px, 48dvh) !important;
+  }
+
+  body.ui-modern.page-venta .venta-field input,
+  body.ui-modern.page-venta .venta-field select {
+    width: 100% !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  body.ui-modern .venta-btn {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    right: max(12px, env(safe-area-inset-right));
+  }
+
+  body.ui-modern .ar-toast-wrap {
+    top: calc(var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top)) + 8px) !important;
+    left: 10px !important;
+    right: 10px !important;
+    transform: none !important;
+    max-width: none !important;
+  }
 }
 
-/* ===== Meta cards ranking ===== */
-@media (max-width: 390px) {
-  body.ui-modern .meta-card {
-    min-width: 140px !important;
-    max-width: 200px;
+/* Breakpoints finos */
+@media (max-width: 430px) {
+  body.ui-modern .brand-badge__text {
+    font-size: 9px !important;
   }
-  :root {
-    --metas-panel-h: 148px;
+  body.ui-modern .meta-row__ventas,
+  body.ui-modern .meta-row__meta {
+    font-size: 9px !important;
   }
 }
 
 @media (max-width: 360px) {
-  body.ui-modern .brand-badge__text {
+  :root {
+    --mobile-metas-h: 140px;
+    --metas-panel-h: 140px;
+  }
+  body.ui-modern .brand-badge__emoji {
+    display: none !important;
+  }
+  body.ui-modern .logout-btn__text {
+    display: none !important;
+  }
+  body.ui-modern .logout-btn {
+    width: 34px !important;
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 320px) {
+  body.ui-modern .topbar-stat__label {
+    font-size: 7px !important;
+  }
+  body.ui-modern .topbar-stat__value {
     font-size: 9px !important;
   }
-  body.ui-modern .topbar {
-    min-height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+}
+
+/* Desktop: restaurar layout original del header (≥769px) */
+@media (min-width: 769px) {
+  body.ui-modern .topbar-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(180px, calc(100% - 128px));
+    max-width: 180px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.ui-modern .topbar-actions {
+    position: fixed;
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 92px;
+    max-width: 120px;
+  }
+
+  body.ui-modern .meta-card--compact-row {
+    display: none !important;
   }
 }

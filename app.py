@@ -12772,6 +12772,8 @@ box-shadow:0 12px 30px rgba(0,0,0,.4);
 .logout-btn:active{
 transform:scale(.97);
 }
+.logout-btn__icon{font-size:13px;line-height:1;}
+.logout-btn__text{line-height:1;}
 /* ===== CAMPANITA ALERTAS RIESGO (admin) ===== */
 .ar-bell-btn{
 background:linear-gradient(135deg,#1e293b,#0f172a);
@@ -13106,8 +13108,9 @@ z-index:9999;
 {% set _es_admin = (_rol in ["admin", "super_admin"]) %}
 {% set _es_cajero = (_rol in ["cajero", "user", "supervisor", "collector"]) and not _es_admin %}
 
-<div class="topbar">
-<div class="menu-btn" onclick="toggleMenu()">☰</div>
+<div class="topbar" id="appTopbar">
+<div class="menu-btn" onclick="toggleMenu()" aria-label="Abrir menú">☰</div>
+<div class="topbar-center">
 <div class="brand-center">
 <span class="brand-badge" aria-label="LA QUE NO FALLA">
 <span class="brand-badge__shine" aria-hidden="true"></span>
@@ -13117,14 +13120,17 @@ z-index:9999;
 </span>
 </div>
 </div>
-
 <div class="topbar-actions{% if _es_admin %} topbar-actions--with-bell{% endif %}">
-<a href="/logout" class="logout-btn">🚪 Salir</a>
 {% if _es_admin %}
 <button type="button" class="ar-bell-btn" id="arBellBtn" aria-label="Alertas de riesgo" title="Números calientes — revisar/bloquear">
 <span class="ar-bell-btn__icon" aria-hidden="true">🔔</span>
 <span class="ar-bell-btn__count" id="arBellCount" hidden></span>
 </button>
+{% endif %}
+<a href="/logout" class="logout-btn" aria-label="Salir"><i class="fa-solid fa-right-from-bracket logout-btn__icon" aria-hidden="true"></i><span class="logout-btn__text">Salir</span></a>
+</div>
+</div>
+{% if _es_admin %}
 <div class="ar-bell-dropdown hidden" id="arBellDropdown" role="dialog" aria-label="Alertas de riesgo">
 <div class="ar-bell-dropdown__head">
 <strong>⚠️ Números calientes hoy</strong>
@@ -13136,7 +13142,6 @@ z-index:9999;
 </div>
 </div>
 {% endif %}
-</div>
 
 <div class="brand-hero-plate" id="brandHeroPlate" aria-label="LA QUE NO FALLA">
 <div class="brand-hero-plate__bg" aria-hidden="true"></div>
@@ -13169,7 +13174,7 @@ z-index:9999;
 <span class="metas-panel__fx-spark metas-panel__fx-spark--g"></span>
 </div>
 <div class="metas-panel__header">
-<span class="metas-panel__title">🔥 RANKING DE CAJEROS EN VIVO • ACTUALIZA AUTOMÁTICO</span>
+<span class="metas-panel__title">🔥 Ranking cajeros</span>
 </div>
 <div class="metas-panel__body">
 <button type="button" class="metas-panel__arrow metas-panel__arrow--prev" id="metasPanelPrev" aria-label="Anterior">‹</button>
@@ -13419,6 +13424,31 @@ function _metaAvatarColor(rank){
 var cols = ["#00ff88","#00b4ff","#a855f7","#ffd60a","#ff6b6b","#38bdf8","#f472b6","#fb923c"];
 return cols[(rank || 0) % cols.length];
 }
+function _isMobileRankingViewport(){
+return window.matchMedia("(max-width: 768px)").matches;
+}
+function _metaStatusDot(pct, hasMeta){
+if(!hasMeta) return "⚪";
+if(pct >= 80) return "🟢";
+if(pct >= 40) return "🟡";
+return "🔴";
+}
+function _buildMetaCardCompactRow(x, fmt, rank){
+var nombre = _metaEsc(x.cajero || "Cajero");
+var ventas = Number(x.ventas || 0);
+var meta = Number(x.meta || 0);
+var hasMeta = meta > 0;
+var pct = hasMeta ? _metaPct(x) : 0;
+var pctTxt = hasMeta ? pct.toFixed(0).replace(/\\.0$/, "") + "%" : "0%";
+var cls = _metaCardClass(pct, hasMeta);
+return '<article class="meta-card meta-card--compact-row ' + cls + '" role="listitem">'
+  + '<span class="meta-row__dot" aria-hidden="true">' + _metaStatusDot(pct, hasMeta) + '</span>'
+  + '<span class="meta-row__name">' + nombre + '</span>'
+  + '<span class="meta-row__ventas">Ventas RD$' + fmt(ventas) + '</span>'
+  + '<span class="meta-row__meta">Meta RD$' + fmt(meta) + '</span>'
+  + '<span class="meta-row__pct">' + pctTxt + '</span>'
+  + '</article>';
+}
 function _buildMetaCard(x, fmt, rank){
 var nombre = _metaEsc(x.cajero || "Cajero");
 var ventas = Number(x.ventas || 0);
@@ -13517,7 +13547,11 @@ track.classList.remove("ranking-track--live");
 track.removeAttribute("data-marquee-loop");
 track.style.removeProperty("transform");
 track.style.removeProperty("animation");
-_lockRankingOverflow();
+if(viewport){
+  viewport.style.removeProperty("overflow-y");
+  viewport.style.removeProperty("max-height");
+  viewport.style.removeProperty("touch-action");
+}
 if(!cajeros.length){
   track.innerHTML = '<div class="metas-panel__empty">Sin cajeros activos</div>';
   return;
@@ -13527,6 +13561,18 @@ cajeros.sort(function(a, b){
   if(Math.abs(dv) > 0.001) return dv;
   return _metaPct(b) - _metaPct(a);
 });
+if(_isMobileRankingViewport()){
+  track.innerHTML = cajeros.map(function(x, i){ return _buildMetaCardCompactRow(x, fmt, i); }).join("");
+  if(viewport){
+    viewport.style.overflowY = "auto";
+    viewport.style.overflowX = "hidden";
+    viewport.style.maxHeight = "132px";
+    viewport.style.touchAction = "pan-y";
+    viewport.scrollTop = 0;
+  }
+  _lockRankingOverflow();
+  return;
+}
 var cards = cajeros.map(function(x, i){ return _buildMetaCard(x, fmt, i); }).join("");
 var vw = (viewport && viewport.clientWidth) || window.innerWidth || 800;
 var cardW = 244;
@@ -13577,6 +13623,12 @@ function initMetasPanelRanking(){
   setInterval(cargarMetasPanel, 60000);
   _setupMetasMarqueePause();
   _setupMetasArrows();
+  try{
+    var mq = window.matchMedia("(max-width: 768px)");
+    var onMq = function(){ cargarMetasPanel(); };
+    if(mq.addEventListener) mq.addEventListener("change", onMq);
+    else if(mq.addListener) mq.addListener(onMq);
+  }catch(_mqE){}
   if(typeof window.__restartRankingTicker==="function"){
     setTimeout(window.__restartRankingTicker, 120);
   }
