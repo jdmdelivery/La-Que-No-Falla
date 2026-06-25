@@ -1,0 +1,26 @@
+/**
+ * LA QUE NO FALLA — Tablet layout (769px – 1024px)
+ * Desktop shell from ui_modern.css; light adjustments only.
+ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  body.ui-modern .dashboard {
+    padding: 16px !important;
+  }
+
+  body.ui-modern .metrics {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  body.ui-modern .panel {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  body.ui-modern .venta-pos-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.ui-modern .reporte-wrap {
+    max-width: 100% !important;
+    padding: 0 16px !important;
+  }
+}

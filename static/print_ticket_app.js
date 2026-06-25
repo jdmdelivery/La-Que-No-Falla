@@ -574,6 +574,10 @@
       topbar.appendChild(stats);
     }
 
+    if (typeof window.__applyMobileLayout === "function") {
+      window.__applyMobileLayout();
+    }
+
     function setValue(kind, value) {
       var row = stats.querySelector('.topbar-stat[data-kind="' + kind + '"] .topbar-stat__value');
       if (row) row.textContent = value;

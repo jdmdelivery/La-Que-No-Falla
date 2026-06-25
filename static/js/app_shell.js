@@ -14,18 +14,19 @@
     if (p.indexOf("/reporte") === 0) return "reporte";
     if (p.indexOf("/mis_pagos_cajero") === 0) return "historial-pagos";
     if (p.indexOf("/admin/resumen_loteria") === 0 || p.indexOf("/resumen_loteria") === 0) return "resumen";
+    if (p.indexOf("/admin/banco") === 0) return "banco";
     if (p === "/admin" || p.indexOf("/admin/limites") === 0) return "dashboard";
     if (p.indexOf("/admin") === 0) return "dashboard";
     return "app";
   }
 
   function rankingPages(page) {
-    return page === "venta" || page === "dashboard";
+    return page === "dashboard";
   }
 
   function applyShellClasses(target, page) {
     if (!target) return;
-    target.classList.add("ui-modern", "page-" + page);
+    target.classList.add("ui-modern", "page-" + page, "mob-page-" + page);
     target.setAttribute("data-ui-page", page);
     if (page === "ganadores") {
       target.classList.add("page-resultados");

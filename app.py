@@ -12287,7 +12287,8 @@ window.__SESSION_ROLE__={{ (session.get('role') or '')|tojson }};
 <link id="app-css-ui-modern" rel="stylesheet" href="/static/css/ui_modern.css?v=__STATIC_V__">
 <link id="app-css-venta-premium" rel="stylesheet" href="/static/css/venta_premium.css?v=__STATIC_V__">
 <link id="app-css-ranking-ticker" rel="stylesheet" href="/static/css/ranking_ticker.css?v=__STATIC_V__">
-<link id="app-css-mobile" rel="stylesheet" href="/static/css/mobile_responsive.css?v=__STATIC_V__">
+<link id="app-css-mobile-layout" rel="stylesheet" href="/static/css/mobile-layout.css?v=__STATIC_V__">
+<link id="app-css-tablet" rel="stylesheet" href="/static/css/tablet.css?v=__STATIC_V__">
 
 <style>
 
@@ -13096,10 +13097,6 @@ z-index:9999;
 </style>
 
 <script defer src="/static/print_ticket_app.js?v=__STATIC_V__"></script>
-
-{% if session.get("u") and request.path != "/" and request.path != "/venta" %}
-<a href="/venta" class="venta-btn">💰 Venta</a>
-{% endif %}
 
 {% if session.get("u") %}
 
@@ -23281,7 +23278,6 @@ def crear_usuario():
         role_options.append((ROLE_CAJERO, "Cajero"))
 
     return render_template_string(IOS + """
-    <a href="/venta" class="venta-btn">💰 Venta</a>
 <style>
 /* Crear Usuario — clases cu-* (ui_modern.css refuerza en .page-crear-usuario) */
 .cu-page{
@@ -23749,7 +23745,7 @@ def superadmin_cambiar_contrasena(user_id):
             return render_template_string(
                 IOS
                 + """
-    <a href="/superadmin/control-usuarios" class="venta-btn">⬅ Volver</a>
+    <a href="/superadmin/control-usuarios" class="admin-btn">⬅ Volver</a>
     <div class="card" style="max-width:480px;margin:26px auto;">
       <h2 style="margin-top:0;">🔑 Cambiar contraseña</h2>
       <p style="color:#64748b;margin-bottom:16px;">Usuario: <strong>{{ u.username }}</strong> ({{ u.role }})</p>
@@ -23996,7 +23992,6 @@ def solicitar_admin():
         conn.close()
 
     return render_template_string(IOS + """
-    <a href="/venta" class="venta-btn">💰 Venta</a>
     <div style="max-width:720px;margin:40px auto;padding:24px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.1);">
         <h2 style="color:#002D62;">📋 Solicitudes de nuevo Admin</h2>
         {% for msg in get_flashed_messages() %}<p style="background:#dbeafe;color:#1e40af;padding:10px;border-radius:8px;">{{ msg }}</p>{% endfor %}
@@ -24094,7 +24089,6 @@ def usuarios_pendientes():
         conn.close()
 
     return render_template_string(IOS + """
-    <a href="/venta" class="venta-btn">💰 Venta</a>
     <div style="max-width:800px;margin:40px auto;padding:24px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.1);">
         <h2 style="color:#002D62;">⏳ Usuarios pendientes de aprobación</h2>
         <p style="color:#555;margin-bottom:20px;">Estos usuarios fueron creados por un Admin y no pueden iniciar sesión hasta que los apruebe.</p>
@@ -24196,7 +24190,6 @@ def ver_usuarios():
         conn.close()
 
     return render_template_string(IOS + """
-    <a href="/venta" class="venta-btn">💰 Venta</a>                              
     <div class="card">
         <h2>👥 Usuarios</h2>
         {% for msg in get_flashed_messages() %}
@@ -24311,7 +24304,7 @@ def superadmin_control_usuarios():
 
     # UI tipo SaaS (sin navegación/JSON en pantalla): acciones via fetch + toast + update en vivo
     return render_template_string(IOS + """
-    <a href="/admin" class="venta-btn">⬅ Volver</a>
+    <a href="/admin" class="admin-btn">⬅ Volver</a>
     <div class="card" style="max-width:980px;margin:26px auto;">
       <h2 style="margin-top:0;">🧑‍💼 Control de Usuarios</h2>
       {% for msg in get_flashed_messages() %}
@@ -27621,6 +27614,7 @@ transform:translateY(-3px);
 
 
 <div class="dashboard">
+<div class="mob-dash-strip-host" id="mobDashStripHost"></div>
 
 <h2 style="text-align:center;margin-bottom:12px">
 📊 Panel Administrativo
@@ -27938,6 +27932,8 @@ box-shadow:0 6px 14px rgba(0,0,0,.25);
 <script src="/static/admin_kpis_lazy.js?v={{ static_v }}" defer></script>
 
 </div>
+
+<div class="mob-dash-ranking-host" id="mobDashRankingHost"></div>
 
 <!-- ===== GRID BOTONES 2 COLUMNAS ===== -->
 <div class="panel">
@@ -29018,8 +29014,6 @@ background:#dbe4ff;
         font-weight:bold;
     }
     </style>
-
-    <a href="/venta" class="venta-btn">💰 Venta</a>
 
     <div class="container">
         <div class="card">

@@ -1,0 +1,8 @@
+/**
+ * LA QUE NO FALLA — Desktop layout
+ * Primary desktop styles live in ui_modern.css + venta_premium.css + ranking_ticker.css
+ * This file documents the split; mobile uses mobile-layout.css, tablet uses tablet.css.
+ */
+@media (min-width: 769px) {
+  /* Desktop shell: ui_modern.css */
+}

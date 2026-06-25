@@ -1192,74 +1192,19 @@ body.ui-modern.page-venta .venta-flash--info {
 }
 
 @media (max-width: 768px) {
-  :root {
-    --vp-venta-topbar-h: 58px;
-    --vp-hero-logo-h: 88px;
-    --vp-metas-h: 200px;
-  }
-  body.ui-modern.page-venta .topbar-stats {
-    padding: 0 88px 0 48px !important;
-  }
-  body.ui-modern.page-venta .topbar-stat {
-    min-width: 100px;
-  }
-  body.ui-modern .meta-card {
-    min-width: 0 !important;
-  }
-
-  body.ui-modern.shell-with-ranking .meta-card {
-    min-width: 0 !important;
-  }
-  body.ui-modern .metas-panel__arrow {
-    flex: 0 0 36px;
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
+  /* Mobile layout: see static/css/mobile-layout.css */
 }
 
 @media (max-width: 480px) {
-  :root {
-    --vp-venta-topbar-h: 54px;
-    --vp-hero-logo-h: 80px;
-    --vp-metas-h: 190px;
-  }
-
-  body.ui-modern .brand-hero-plate__inner {
-    padding: 12px clamp(16px, 4vw, 28px);
-  }
-
-  body.ui-modern .brand-hero-plate__text {
-    font-size: clamp(13px, 3.8vw, 18px);
-    letter-spacing: 0.06em;
-  }
-
-  body.ui-modern.page-venta .topbar-stat {
-    min-width: 88px;
-    padding: 5px 7px !important;
-  }
+  /* Mobile layout: see static/css/mobile-layout.css */
 }
 
 @media (max-width: 360px) {
-  body.ui-modern .brand-hero-plate__text {
-    font-size: 11.5px;
-    letter-spacing: 0.035em;
-  }
-  :root {
-    --vp-venta-topbar-h: 52px;
-    --vp-hero-logo-h: 72px;
-    --vp-metas-h: 170px;
-  }
-  body.ui-modern.page-venta .venta-lot-catalog {
-    max-height: min(340px, 45dvh) !important;
-  }
+  /* Mobile layout: see static/css/mobile-layout.css */
 }
 
 @media (max-width: 390px) {
-  body.ui-modern.page-venta .venta-pos-note {
-    font-size: 11px;
-    line-height: 1.4;
-  }
+  /* Mobile layout: see static/css/mobile-layout.css */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1291,16 +1236,7 @@ body.ui-modern .metas-panel--premium .metas-panel__body {
   overflow-x: hidden !important;
 }
 
-body.ui-modern .metas-panel--premium .cashier-card,
-body.ui-modern .metas-panel--premium .meta-card {
-  display: block !important;
-  max-height: 110px !important;
-  height: 110px !important;
-  overflow: visible !important;
-  grid-template-columns: unset !important;
-  grid-template-rows: unset !important;
-  flex-shrink: 0 !important;
-}
+/* Ranking card sizing on mobile: static/css/mobile-layout.css */
 
 /* Footer links — dark terminal */
 body.ui-modern.page-venta .venta-pos-shell > a[href="/admin/jugadas"] {
