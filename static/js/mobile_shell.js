@@ -183,13 +183,42 @@
     setupDrawerNav();
   }
 
+  function auditOverflow() {
+    if (!isMobile()) return;
+    var sw = d.documentElement.scrollWidth;
+    var iw = w.innerWidth;
+    var ok = sw <= iw + 1;
+    console.log(
+      "[MOBILE LAYOUT AUDIT] document.documentElement.scrollWidth=" + sw +
+      " window.innerWidth=" + iw +
+      (ok ? " OK" : " OVERFLOW — fix required")
+    );
+    if (!ok) {
+      var offenders = [];
+      d.querySelectorAll("body *").forEach(function (el) {
+        if (!el.getBoundingClientRect) return;
+        var r = el.getBoundingClientRect();
+        if (r.width > iw + 2 || r.right > iw + 2) {
+          offenders.push(el);
+        }
+      });
+      offenders.slice(0, 8).forEach(function (el) {
+        console.warn("[OVERFLOW]", el.tagName, el.className || el.id, el.getBoundingClientRect().width);
+      });
+    }
+  }
+
   function init() {
     patchToggleMenu();
     applyMobileLayout();
+    setupDrawerNav();
     closeDrawer();
+    setTimeout(auditOverflow, 600);
+    setTimeout(auditOverflow, 2000);
 
     w.addEventListener("resize", function () {
       applyMobileLayout();
+      auditOverflow();
     });
 
     w.addEventListener("pageshow", function () {
@@ -213,9 +242,12 @@
       tries += 1;
       relocateWidgets(detectPage(w.location.pathname));
       removeFloatingVenta();
+      if (tries === 3 || tries === 12) auditOverflow();
       if (tries > 24) clearInterval(poll);
     }, 200);
   }
+
+  w.__auditMobileOverflow = auditOverflow;
 
   w.__applyMobilePageShell = applyPageClasses;
   w.__applyMobileLayout = applyMobileLayout;

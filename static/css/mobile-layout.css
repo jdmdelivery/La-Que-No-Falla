@@ -25,12 +25,28 @@
     --mob-body-top: calc(var(--mob-header) + var(--mob-safe-t));
   }
 
-  /* ─── Reset desktop shell spacing ─── */
-  html.ui-modern,
+  /* ═══════════════════════════════════════════════════════════
+     HARD RESET — iPhone / Android: zero horizontal overflow
+     ═══════════════════════════════════════════════════════════ */
+  html,
+  html.ui-modern {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-x: clip !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body.ui-modern {
     width: 100% !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
     overflow-x: hidden !important;
+    overflow-x: clip !important;
+    box-sizing: border-box !important;
     background: var(--mob-bg) !important;
     color: var(--mob-text) !important;
     padding:
@@ -38,8 +54,140 @@
       max(var(--mob-pad), var(--mob-safe-r))
       calc(var(--mob-pad) + var(--mob-safe-b))
       max(var(--mob-pad), var(--mob-safe-l)) !important;
-    -webkit-text-size-adjust: 100%;
+    transform: none !important;
   }
+
+  body.ui-modern *,
+  body.ui-modern *::before,
+  body.ui-modern *::after {
+    box-sizing: border-box !important;
+  }
+
+  /* All page shells — full width, no desktop offset */
+  body.ui-modern .dashboard,
+  body.ui-modern .venta-wrap,
+  body.ui-modern .venta-pos-shell,
+  body.ui-modern .venta-panel,
+  body.ui-modern .reporte-wrap,
+  body.ui-modern .reporte-card,
+  body.ui-modern .mpc-wrap,
+  body.ui-modern .wrap,
+  body.ui-modern .content,
+  body.ui-modern .main,
+  body.ui-modern .page,
+  body.ui-modern .page-content,
+  body.ui-modern .gnr-section,
+  body.ui-modern .lim-wrap,
+  body.ui-modern .cu-page,
+  body.ui-modern .card,
+  body.ui-modern .panel,
+  body.ui-modern .mob-dash-strip-host,
+  body.ui-modern .mob-dash-ranking-host,
+  body.ui-modern .mob-quick-actions {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    transform: none !important;
+  }
+
+  /* Kill desktop fixed min-widths that blow past viewport */
+  body.ui-modern .meta-card,
+  body.ui-modern .cashier-card,
+  body.ui-modern .topbar-stat,
+  body.ui-modern .ranking-track,
+  body.ui-modern #metasPanelTrack,
+  body.ui-modern .ranking-container,
+  body.ui-modern #metasPanelViewport {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+
+  body.ui-modern .ranking-track,
+  body.ui-modern #metasPanelTrack {
+    width: 100% !important;
+    flex-wrap: nowrap !important;
+    flex-direction: column !important;
+  }
+
+  /* Stats: NEVER absolute/fixed — normal document flow only */
+  body.ui-modern .topbar-stats,
+  body.ui-modern #topbarStats {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: auto !important;
+    float: none !important;
+  }
+
+  body.ui-modern .topbar .topbar-stats,
+  body.ui-modern .topbar #topbarStats {
+    display: none !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-dash-strip-host {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 0 var(--mob-gap) !important;
+    padding: 0 !important;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-dash-strip-host .topbar-stats {
+    display: flex !important;
+    position: static !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.ui-modern.mob-page-dashboard .mob-dash-strip-host .topbar-stat {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    position: static !important;
+  }
+
+  /* Metas/ranking — in-flow only on dashboard */
+  body.ui-modern .metas-panel,
+  body.ui-modern #metasPanel,
+  body.ui-modern .metas-panel--premium {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    transform: none !important;
+  }
+
+  /* Tables scroll inside container, not page */
+  body.ui-modern .table-wrap,
+  body.ui-modern .table-responsive,
+  body.ui-modern .reporte-table-wrap,
+  body.ui-modern .mpc-table-wrap,
+  body.ui-modern .tabla-resultados {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.ui-modern table {
+    max-width: none;
+  }
+
+  /* ─── Reset desktop shell spacing (legacy block) ─── */
 
   /* Neutralize desktop shell vars on all non-dashboard mobile pages */
   body.ui-modern.mob-shell-active:not(.mob-page-dashboard) {
@@ -111,40 +259,73 @@
     display: block !important;
   }
 
-  /* ─── HEADER 56px — menú | título | campana | salir ─── */
+  /* ─── HEADER 56px — flex: menú | título | campana | salir ─── */
   body.ui-modern .topbar,
   body.ui-modern #appTopbar {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     z-index: 4000 !important;
-    display: grid !important;
-    grid-template-columns: 44px 1fr auto !important;
-    grid-template-rows: var(--mob-header) !important;
+    display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
-    gap: 0 8px !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
     min-height: calc(var(--mob-header) + var(--mob-safe-t)) !important;
     height: calc(var(--mob-header) + var(--mob-safe-t)) !important;
     max-height: calc(var(--mob-header) + var(--mob-safe-t)) !important;
     padding:
       var(--mob-safe-t)
-      max(10px, var(--mob-safe-r))
+      max(8px, var(--mob-safe-r))
       0
-      max(10px, var(--mob-safe-l)) !important;
+      max(8px, var(--mob-safe-l)) !important;
     background: linear-gradient(180deg, #0a1220 0%, #060d18 100%) !important;
     border-bottom: 1px solid var(--mob-border) !important;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+  }
+
+  body.ui-modern .menu-btn {
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--mob-border) !important;
+    background: var(--mob-surface-2) !important;
+    color: var(--mob-text) !important;
+    font-size: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   body.ui-modern .topbar-center {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
+    flex: 1 1 auto !important;
     min-width: 0 !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    grid-column: unset !important;
+    grid-row: unset !important;
   }
 
   body.ui-modern .topbar-center .brand-center,
@@ -182,43 +363,30 @@
     text-overflow: ellipsis !important;
   }
 
-  body.ui-modern .menu-btn {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    position: relative !important;
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border-radius: 10px !important;
-    border: 1px solid var(--mob-border) !important;
-    background: var(--mob-surface-2) !important;
-    color: var(--mob-text) !important;
-    font-size: 20px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
   body.ui-modern .topbar-actions {
-    grid-column: 3 !important;
-    grid-row: 1 !important;
+    flex: 0 0 auto !important;
     position: static !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     gap: 5px !important;
     transform: none !important;
-    flex-shrink: 0 !important;
     min-width: 0 !important;
-    max-width: 42vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-width: none !important;
   }
 
   body.ui-modern .topbar-actions .ar-bell-btn,
   body.ui-modern .topbar-actions .logout-btn {
     flex-shrink: 0 !important;
+    position: static !important;
+    transform: none !important;
   }
 
   body.ui-modern .logout-btn__text {
@@ -746,11 +914,18 @@
   }
 
   body.ui-modern.mob-page-venta .venta-wrap,
-  body.ui-modern.mob-page-venta .venta-pos-shell {
-    padding: 4px 0 12px !important;
-    margin: 0 !important;
-    min-height: 0 !important;
+  body.ui-modern.mob-page-venta .venta-pos-shell,
+  body.ui-modern.page-venta .venta-wrap,
+  body.ui-modern.page-venta .venta-pos-shell {
+    width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 4px 0 12px !important;
+    min-height: 0 !important;
+    transform: none !important;
+    left: auto !important;
+    right: auto !important;
   }
 
   body.ui-modern.mob-page-venta .venta-pos-head,
@@ -1067,10 +1242,13 @@
   }
 
   body.ui-modern table {
-    min-width: 560px;
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px !important;
+    max-width: none;
+  }
+
+  body.ui-modern .table-wrap table,
+  body.ui-modern .reporte-table-wrap table,
+  body.ui-modern .tabla-resultados table {
+    min-width: 480px;
   }
 
   body.ui-modern table thead th {

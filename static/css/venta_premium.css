@@ -1212,6 +1212,17 @@ body.ui-modern.page-venta .venta-flash--info {
   body.ui-modern.page-venta .topbar-stats,
   body.ui-modern.page-venta #topbarStats {
     display: none !important;
+    position: static !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.ui-modern.page-venta .metas-panel--premium .meta-card,
+  body.ui-modern.page-venta .metas-panel--premium .cashier-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    transform: none !important;
   }
 
   body.ui-modern.page-venta .brand-center,
@@ -1223,6 +1234,13 @@ body.ui-modern.page-venta .venta-flash--info {
 
   body.ui-modern.page-venta .brand-badge__text {
     display: block !important;
+  }
+
+  body.ui-modern.page-venta .venta-pos-shell {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 }
 

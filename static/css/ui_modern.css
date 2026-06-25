@@ -2088,3 +2088,40 @@ body.ui-modern .sidebar--cajero-only .sb-link--virtual,
 body.ui-modern .sidebar--cajero-only .sb-group-title{
   display:none !important;
 }
+
+/* Mobile overflow lock — detailed rules in mobile-layout.css */
+@media (max-width: 768px) {
+  body.ui-modern .topbar-stats,
+  body.ui-modern #topbarStats {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    top: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  body.ui-modern .topbar-actions {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    transform: none !important;
+  }
+
+  body.ui-modern .meta-card,
+  body.ui-modern .cashier-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+
+  body.ui-modern .dashboard,
+  body.ui-modern .venta-pos-shell {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

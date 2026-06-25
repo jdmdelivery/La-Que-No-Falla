@@ -11,7 +11,7 @@ body.ui-modern #metasPanel,
 body.ui-modern .metas-panel--premium {
   overflow: hidden !important;
   overflow-x: hidden !important;
-  max-width: 100vw !important;
+  max-width: 100% !important;
 }
 
 body.ui-modern:not(.page-venta):not(:has(.brand-hero-plate)) .metas-panel--premium {
@@ -276,10 +276,22 @@ body.ui-modern .metas-panel--premium .meta-card__pct {
     --metas-panel-h: 0px !important;
   }
 
+  body.ui-modern #metasPanel,
+  body.ui-modern .metas-panel--premium,
+  body.ui-modern .metas-panel--premium .meta-card,
+  body.ui-modern .metas-panel--premium .cashier-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
   body.ui-modern:not(.mob-page-dashboard) #metasPanel,
   body.ui-modern:not(.mob-page-dashboard) .metas-panel--premium {
     display: none !important;
     position: absolute !important;
+    left: -9999px !important;
+    width: 0 !important;
     height: 0 !important;
     min-height: 0 !important;
     overflow: hidden !important;
@@ -290,6 +302,14 @@ body.ui-modern .metas-panel--premium .meta-card__pct {
     display: block !important;
     position: relative !important;
     top: auto !important;
+    left: auto !important;
     min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #metasPanel,
+  body.ui-modern #metasPanel {
+    max-width: 100% !important;
   }
 }
