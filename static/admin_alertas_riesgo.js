@@ -212,10 +212,6 @@
     var el = document.getElementById(containerId);
     if (!el) return;
     var listEl = el;
-    if (containerId === "adminAlertasRiesgoPanel") {
-      listEl = document.getElementById("adminAlertasRiesgoList");
-      el.style.display = state.items.length ? "block" : "none";
-    }
     if (containerId === "limitesAlertasRiesgoPanel") {
       listEl = document.getElementById("limitesAlertasRiesgoList");
       el.style.display = state.items.length ? "block" : "none";
@@ -237,20 +233,25 @@
 
   function updateBadge() {
     var n = state.items.length;
-    var badge = document.getElementById("arBellBadge");
+    var countEl = document.getElementById("arBellCount");
     var bell = document.getElementById("arBellBtn");
-    if (badge) {
-      badge.textContent = n > 99 ? "99+" : String(n);
-      badge.style.display = n > 0 ? "flex" : "none";
+    if (countEl) {
+      if (n > 0) {
+        countEl.textContent = n > 99 ? "99+" : String(n);
+        countEl.hidden = false;
+      } else {
+        countEl.textContent = "";
+        countEl.hidden = true;
+      }
     }
     if (bell) {
       bell.setAttribute("aria-label", n + " alertas de riesgo alto");
+      bell.classList.toggle("ar-bell--has-alerts", n > 0);
     }
   }
 
   function renderAll() {
     updateBadge();
-    renderInto("adminAlertasRiesgoPanel", { maxItems: 6 });
     renderInto("limitesAlertasRiesgoPanel", { maxItems: 10 });
     renderInto("arBellList", { maxItems: 8 });
   }

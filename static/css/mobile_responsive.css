@@ -39,19 +39,23 @@ body.ui-modern.sidebar-open {
   height: 100%;
 }
 
-/* ===== Topbar / campanita ===== */
+/* ===== Topbar / campanita + acciones derecha ===== */
 @media (max-width: 480px) {
-  body.ui-modern .ar-bell-btn {
-    right: max(88px, calc(72px + env(safe-area-inset-right, 0px)));
-    min-width: 40px;
-    min-height: 40px;
-    padding: 6px 10px;
-    font-size: 16px;
+  body.ui-modern .topbar-actions {
+    top: calc(6px + env(safe-area-inset-top, 0px));
+    right: max(8px, env(safe-area-inset-right, 0px));
+    min-width: 80px;
+    max-width: 100px;
+    gap: 5px;
   }
+  body.ui-modern .ar-bell-btn,
   body.ui-modern .logout-btn {
-    padding: 8px 12px;
+    padding: 8px 10px;
     font-size: 12px;
-    right: max(12px, env(safe-area-inset-right, 0px));
+    min-height: 40px;
+  }
+  body.ui-modern .ar-bell-btn__icon {
+    font-size: 15px;
   }
   body.ui-modern .menu-btn {
     font-size: 24px;

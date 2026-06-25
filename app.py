@@ -12428,7 +12428,7 @@ left:50%;
 top:50%;
 transform:translate(-50%, -50%);
 z-index:1001;
-max-width:calc(100% - 168px);
+max-width:calc(100% - 128px);
 pointer-events:none;
 }
 .brand-badge{
@@ -12732,66 +12732,87 @@ color:#fca5a5;
 display:none;
 }
 
-/* ===== BOTON SALIR PREMIUM (dentro de .topbar; respeta safe-area) ===== */
+/* ===== Acciones fijas derecha: Salir + campana (admin) ===== */
+.topbar-actions{
+position:fixed;
+top:calc(8px + env(safe-area-inset-top, 0px));
+right:max(12px, env(safe-area-inset-right, 0px));
+z-index:1002;
+display:flex;
+flex-direction:column;
+align-items:stretch;
+gap:6px;
+min-width:92px;
+max-width:120px;
+}
 .logout-btn{
-position:absolute;
-right:max(20px, env(safe-area-inset-right, 0px));
-top:50%;
-transform:translateY(-50%);
-
-background:linear-gradient(135deg,#CE1126,#8f0c1b);
-color:white !important;
-
-padding:10px 18px;
-border-radius:14px;
-
-font-weight:900;
-font-size:14px;
-text-decoration:none;
-
-box-shadow:0 6px 18px rgba(0,0,0,.3);
-transition:.25s;
-z-index:1000;
-}
-
-/* hover */
-.logout-btn:hover{
-transform:translateY(calc(-50% - 2px)) scale(1.05);
-box-shadow:0 12px 30px rgba(0,0,0,.4);
-}
-
-/* click */
-.logout-btn:active{
-transform:translateY(-50%) scale(.95);
-}
-
-/* ===== CAMPANITA ALERTAS RIESGO (admin) ===== */
-.ar-bell-btn{
-position:absolute;
-right:max(108px, calc(88px + env(safe-area-inset-right, 0px)));
-top:50%;
-transform:translateY(-50%);
-background:linear-gradient(135deg,#1e293b,#0f172a);
-color:#fde68a !important;
-border:2px solid #fbbf24;
-padding:8px 12px;
-border-radius:14px;
-font-size:18px;
-line-height:1;
-cursor:pointer;
-box-shadow:0 6px 18px rgba(0,0,0,.28);
-z-index:1001;
 display:inline-flex;
 align-items:center;
 justify-content:center;
-min-width:44px;
+gap:4px;
+background:linear-gradient(135deg,#CE1126,#8f0c1b);
+color:white !important;
+padding:10px 14px;
+border-radius:14px;
+font-weight:900;
+font-size:13px;
+line-height:1.15;
+text-decoration:none;
+border:none;
+box-shadow:0 6px 18px rgba(0,0,0,.3);
+transition:transform .2s ease,box-shadow .2s ease;
 min-height:44px;
+box-sizing:border-box;
+cursor:pointer;
 }
-.ar-bell-btn:hover{transform:translateY(calc(-50% - 2px)) scale(1.04);}
+.logout-btn:hover{
+transform:translateY(-2px) scale(1.03);
+box-shadow:0 12px 30px rgba(0,0,0,.4);
+}
+.logout-btn:active{
+transform:scale(.97);
+}
+/* ===== CAMPANITA ALERTAS RIESGO (admin) ===== */
+.ar-bell-btn{
+background:linear-gradient(135deg,#1e293b,#0f172a);
+color:#fde68a !important;
+border:2px solid rgba(251,191,36,.55);
+padding:10px 14px;
+border-radius:14px;
+font-size:14px;
+font-weight:900;
+line-height:1.15;
+cursor:pointer;
+box-shadow:0 6px 18px rgba(0,0,0,.28);
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:5px;
+min-height:44px;
+box-sizing:border-box;
+transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.ar-bell-btn:hover{
+transform:translateY(-2px) scale(1.03);
+border-color:#fbbf24;
+box-shadow:0 10px 24px rgba(251,191,36,.22);
+}
+.ar-bell-btn:active{transform:scale(.97);}
+.ar-bell-btn.ar-bell--has-alerts{
+border-color:#fbbf24;
+background:linear-gradient(135deg,#422006,#78350f);
+}
 .ar-bell-btn.ar-bell--pulse{animation:arBellPulse .55s ease-in-out 3;}
-@keyframes arBellPulse{0%,100%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.12);box-shadow:0 0 0 4px rgba(251,191,36,.45)}}
+@keyframes arBellPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08);box-shadow:0 0 0 4px rgba(251,191,36,.45)}}
+.ar-bell-btn__icon{line-height:1;font-size:16px;}
+.ar-bell-btn__count{
+font-size:13px;
+font-weight:900;
+color:#fef3c7;
+min-width:14px;
+}
 .ar-toast-wrap{
-position:fixed;top:calc(70px + var(--metas-panel-h, 132px) + env(safe-area-inset-top, 0px) + 12px);
+position:fixed;top:calc(108px + env(safe-area-inset-top, 0px) + 8px);
 left:50%;transform:translateX(-50%);
 z-index:10060;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:min(420px,calc(100vw - 24px));
 }
@@ -12802,26 +12823,9 @@ transition:opacity .25s ease,transform .25s ease;pointer-events:auto;text-align:
 }
 .ar-toast.show{opacity:1;transform:translateY(0);}
 .ar-toast--hot{background:linear-gradient(135deg,#7f1d1d,#991b1b);color:#fee2e2;border-color:#fbbf24;}
-.ar-bell-badge{
-position:absolute;
-top:-4px;
-right:-4px;
-min-width:18px;
-height:18px;
-padding:0 5px;
-border-radius:999px;
-background:#dc2626;
-color:#fff;
-font-size:10px;
-font-weight:900;
-display:none;
-align-items:center;
-justify-content:center;
-border:2px solid #0f172a;
-}
 .ar-bell-dropdown{
 position:fixed;
-top:calc(70px + var(--metas-panel-h, 132px) + env(safe-area-inset-top, 0px) + 8px);
+top:calc(108px + env(safe-area-inset-top, 0px));
 right:max(12px, env(safe-area-inset-right, 0px));
 width:min(380px, calc(100vw - 24px));
 max-height:min(420px, 55vh);
@@ -13112,10 +13116,14 @@ z-index:9999;
 <span class="brand-badge__emoji">💰</span>
 </span>
 </div>
+</div>
+
+<div class="topbar-actions{% if _es_admin %} topbar-actions--with-bell{% endif %}">
+<a href="/logout" class="logout-btn">🚪 Salir</a>
 {% if _es_admin %}
 <button type="button" class="ar-bell-btn" id="arBellBtn" aria-label="Alertas de riesgo" title="Números calientes — revisar/bloquear">
-🔔
-<span class="ar-bell-badge" id="arBellBadge" style="display:none">0</span>
+<span class="ar-bell-btn__icon" aria-hidden="true">🔔</span>
+<span class="ar-bell-btn__count" id="arBellCount" hidden></span>
 </button>
 <div class="ar-bell-dropdown hidden" id="arBellDropdown" role="dialog" aria-label="Alertas de riesgo">
 <div class="ar-bell-dropdown__head">
@@ -13128,7 +13136,6 @@ z-index:9999;
 </div>
 </div>
 {% endif %}
-<a href="/logout" class="logout-btn">🚪 Salir</a>
 </div>
 
 <div class="brand-hero-plate" id="brandHeroPlate" aria-label="LA QUE NO FALLA">
@@ -27578,13 +27585,6 @@ transform:translateY(-3px);
 {% for msg in get_flashed_messages() %}
 <div style="background:#fee2e2;color:#991b1b;padding:12px;border-radius:8px;margin-bottom:12px;font-weight:bold;text-align:center">{{ msg }}</div>
 {% endfor %}
-
-<div id="adminAlertasRiesgoPanel" class="ar-panel-wrap" style="display:none">
-<h3>🔔 Alertas inteligentes — números calientes</h3>
-<p style="font-size:12px;color:#78716c;margin:0 0 10px">Solo riesgo <strong>alto</strong>. Tras recalcular historial o ventas altas — tú decides bloquear, limitar o ignorar.</p>
-<div id="adminAlertasRiesgoList"></div>
-</div>
-
 
 <!-- ===== FILA SUPERIOR: métricas principales ===== -->
 <div class="metrics">
