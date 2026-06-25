@@ -1192,7 +1192,38 @@ body.ui-modern.page-venta .venta-flash--info {
 }
 
 @media (max-width: 768px) {
-  /* Mobile layout: see static/css/mobile-layout.css */
+  /* Mobile: venta uses mobile-layout.css — no desktop hero/ranking offset */
+  body.ui-modern.page-venta,
+  body.ui-modern.page-venta:has(.brand-hero-plate) {
+    --vp-hero-logo-h: 0px !important;
+    --vp-metas-h: 0px !important;
+    --metas-panel-h: 0px !important;
+    --vp-venta-topbar-h: 56px !important;
+    padding-top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  }
+
+  body.ui-modern.page-venta .metas-panel--premium,
+  body.ui-modern.page-venta #metasPanel {
+    display: none !important;
+    min-height: 0 !important;
+    height: 0 !important;
+  }
+
+  body.ui-modern.page-venta .topbar-stats,
+  body.ui-modern.page-venta #topbarStats {
+    display: none !important;
+  }
+
+  body.ui-modern.page-venta .brand-center,
+  body.ui-modern.page-venta .brand-badge,
+  body.ui-modern.page-venta .brand-badge__text {
+    display: flex !important;
+    visibility: visible !important;
+  }
+
+  body.ui-modern.page-venta .brand-badge__text {
+    display: block !important;
+  }
 }
 
 @media (max-width: 480px) {

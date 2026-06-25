@@ -544,27 +544,129 @@
     white-space: nowrap !important;
   }
 
-  /* ─── VENTA — clean POS, no global chrome ─── */
-  body.ui-modern.mob-page-venta {
+  /* ─── VENTA — content flush below 56px header (override venta_premium desktop padding) ─── */
+  body.ui-modern.page-venta,
+  body.ui-modern.page-venta:has(.brand-hero-plate),
+  body.ui-modern.mob-page-venta,
+  body.ui-modern.page-venta.mob-page-venta,
+  body.ui-modern.page-venta.mob-page-venta:has(.brand-hero-plate) {
+    --metas-panel-h: 0px !important;
+    --vp-hero-logo-h: 0px !important;
+    --vp-metas-h: 0px !important;
+    --vp-venta-topbar-h: var(--mob-header) !important;
     padding-top: var(--mob-body-top) !important;
+    padding-bottom: calc(var(--mob-pad) + var(--mob-safe-b)) !important;
+  }
+
+  body.ui-modern.mob-page-venta #metasPanel,
+  body.ui-modern.mob-page-venta .metas-panel,
+  body.ui-modern.mob-page-venta .metas-panel--premium,
+  body.ui-modern.page-venta #metasPanel,
+  body.ui-modern.page-venta .metas-panel--premium {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  body.ui-modern.mob-page-venta #brandHeroPlate,
+  body.ui-modern.page-venta #brandHeroPlate {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* venta_premium hides title — restore on mobile */
+  body.ui-modern.mob-page-venta .topbar-center,
+  body.ui-modern.mob-page-venta .brand-center,
+  body.ui-modern.page-venta.mob-page-venta .brand-center {
+    display: flex !important;
+    visibility: visible !important;
+  }
+
+  body.ui-modern.mob-page-venta .brand-badge,
+  body.ui-modern.page-venta.mob-page-venta .brand-badge {
+    display: inline-flex !important;
+    visibility: visible !important;
+  }
+
+  body.ui-modern.mob-page-venta .brand-badge__text,
+  body.ui-modern.page-venta.mob-page-venta .brand-badge__text {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  body.ui-modern.mob-page-venta .topbar #topbarStats,
+  body.ui-modern.page-venta .topbar-stats,
+  body.ui-modern.page-venta #topbarStats {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.ui-modern.mob-page-venta .topbar,
+  body.ui-modern.page-venta.mob-page-venta .topbar {
+    grid-template-columns: 44px 1fr auto !important;
+    grid-template-rows: var(--mob-header) !important;
+    min-height: calc(var(--mob-header) + var(--mob-safe-t)) !important;
+    height: calc(var(--mob-header) + var(--mob-safe-t)) !important;
+    max-height: calc(var(--mob-header) + var(--mob-safe-t)) !important;
+    overflow: hidden !important;
   }
 
   body.ui-modern.mob-page-venta .venta-wrap,
   body.ui-modern.mob-page-venta .venta-pos-shell {
-    padding: var(--mob-pad) 0 !important;
+    padding: 4px 0 12px !important;
     margin: 0 !important;
+    min-height: 0 !important;
     max-width: 100% !important;
   }
 
-  body.ui-modern.mob-page-venta .venta-pos-head h2 {
-    font-size: 1rem !important;
+  body.ui-modern.mob-page-venta .venta-pos-head,
+  body.ui-modern.mob-page-venta .venta-pos-head--premium {
     margin: 0 0 6px !important;
+    padding: 0 !important;
+    gap: 6px !important;
+  }
+
+  body.ui-modern.mob-page-venta .venta-pos-head h2 {
+    font-size: 0.95rem !important;
+    margin: 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  body.ui-modern.mob-page-venta .venta-pos-head__user {
+    font-size: 12px !important;
+    margin: 2px 0 0 !important;
+  }
+
+  body.ui-modern.mob-page-venta .ventas-hoy--premium {
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  body.ui-modern.mob-page-venta .ventas-hoy__val {
+    font-size: 13px !important;
   }
 
   body.ui-modern.mob-page-venta .venta-pos-note {
     font-size: 11px !important;
-    margin-bottom: 8px !important;
+    margin: 0 0 8px !important;
+    text-align: left !important;
     color: var(--mob-muted) !important;
+  }
+
+  body.ui-modern.mob-page-venta .venta-pos-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--mob-gap) !important;
   }
 
   body.ui-modern.mob-page-venta .venta-panel {
