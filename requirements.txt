@@ -1,0 +1,10 @@
+Flask>=2.0
+Werkzeug>=2.0
+requests
+beautifulsoup4
+APScheduler
+pytz
+gunicorn
+psycopg2-binary
+fpdf2>=2.7.0
+python-dotenv

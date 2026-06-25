@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.db
+*.log
+.env
+.venv/
+venv/
+tools/_tmp_venta_line.db
+backups/
