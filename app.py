@@ -12269,6 +12269,7 @@ window.__SESSION_ROLE__={{ (session.get('role') or '')|tojson }};
 </script>
 {% endif %}
 <script src="/static/js/app_shell.js?v=__STATIC_V__"></script>
+<script defer src="/static/js/mobile_shell.js?v=__STATIC_V__"></script>
 
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13396,15 +13397,6 @@ try{
   var _sb=document.getElementById("sidebar");
   if(_sb && localStorage.getItem("sbCollapsed")==="1") _sb.classList.add("sidebar--collapsed");
 }catch(e){}
-setTimeout(function(){
-  var sb=document.getElementById("sidebar");
-  if(!sb) return;
-  sb.querySelectorAll("a.sb-link").forEach(function(a){
-    a.addEventListener("click", function(){
-      if(window.matchMedia("(max-width:900px)").matches) closeSideMenu();
-    });
-  });
-}, 0);
 
 function _metaEsc(s){
 return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
@@ -13562,11 +13554,12 @@ cajeros.sort(function(a, b){
   return _metaPct(b) - _metaPct(a);
 });
 if(_isMobileRankingViewport()){
-  track.innerHTML = cajeros.map(function(x, i){ return _buildMetaCardCompactRow(x, fmt, i); }).join("");
+  var mobileCajeros = cajeros.slice(0, 3);
+  track.innerHTML = mobileCajeros.map(function(x, i){ return _buildMetaCardCompactRow(x, fmt, i); }).join("");
   if(viewport){
     viewport.style.overflowY = "auto";
     viewport.style.overflowX = "hidden";
-    viewport.style.maxHeight = "132px";
+    viewport.style.maxHeight = "96px";
     viewport.style.touchAction = "pan-y";
     viewport.scrollTop = 0;
   }

@@ -10,24 +10,42 @@
     if (p === "/" || p === "/login" || p.indexOf("/login") === 0) return "login";
     if (p === "/crear_usuario" || p.indexOf("/crear_usuario") === 0) return "crear-usuario";
     if (p.indexOf("/venta") === 0 || p.indexOf("/ticket") === 0) return "venta";
-    if (p.indexOf("/ganadores") === 0 || p.indexOf("/actualizar_resultados") === 0) return "resultados";
-    if (p.indexOf("/admin/limites") === 0) return "dashboard";
+    if (p.indexOf("/ganadores") === 0 || p.indexOf("/actualizar_resultados") === 0) return "ganadores";
+    if (p.indexOf("/reporte") === 0) return "reporte";
+    if (p.indexOf("/mis_pagos_cajero") === 0) return "historial-pagos";
+    if (p.indexOf("/admin/resumen_loteria") === 0 || p.indexOf("/resumen_loteria") === 0) return "resumen";
+    if (p === "/admin" || p.indexOf("/admin/limites") === 0) return "dashboard";
     if (p.indexOf("/admin") === 0) return "dashboard";
     return "app";
   }
 
+  function rankingPages(page) {
+    return page === "venta" || page === "dashboard";
+  }
+
+  function applyShellClasses(target, page) {
+    if (!target) return;
+    target.classList.add("ui-modern", "page-" + page);
+    target.setAttribute("data-ui-page", page);
+    if (page === "ganadores") {
+      target.classList.add("page-resultados");
+    }
+    if (target === d.body) {
+      target.classList.toggle("shell-with-ranking", rankingPages(page));
+      target.classList.toggle("shell-no-ranking", !rankingPages(page));
+    }
+  }
+
   var page = detectPage(w.location && w.location.pathname);
   var root = d.documentElement;
-  root.classList.add("ui-modern", "page-" + page);
-  root.setAttribute("data-ui-page", page);
+  applyShellClasses(root, page);
 
   function tagBody() {
     if (!d.body) {
       w.requestAnimationFrame(tagBody);
       return;
     }
-    d.body.classList.add("ui-modern", "page-" + page);
-    d.body.setAttribute("data-ui-page", page);
+    applyShellClasses(d.body, page);
   }
   tagBody();
 

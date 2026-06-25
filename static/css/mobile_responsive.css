@@ -107,11 +107,11 @@ body.ui-modern.page-login {
   :root {
     --mobile-topbar-main-h: 44px;
     --mobile-topbar-stats-h: 34px;
-    --mobile-metas-h: 155px;
-    --metas-panel-h: 155px;
+    --mobile-metas-h: 120px;
+    --metas-panel-h: 120px;
     --vp-venta-topbar-h: 44px;
     --vp-hero-logo-h: 0px;
-    --vp-metas-h: 155px;
+    --vp-metas-h: 120px;
   }
 
   html.ui-modern,
@@ -132,9 +132,57 @@ body.ui-modern.page-login {
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
+  /* Páginas sin ranking: header compacto solo (menú + título + acciones) */
+  body.ui-modern.shell-no-ranking,
+  body.ui-modern:not(.shell-with-ranking),
+  body.ui-modern.shell-no-ranking:has(.brand-hero-plate),
+  body.ui-modern.shell-no-ranking:has(.brand-hero-plate):not(.page-venta),
+  body.ui-modern:not(.shell-with-ranking):has(.brand-hero-plate),
+  body.ui-modern:not(.shell-with-ranking):has(.brand-hero-plate):not(.page-venta) {
+    padding-top: calc(
+      var(--mobile-topbar-main-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top))
+    ) !important;
+  }
+
+  body.ui-modern.shell-no-ranking .topbar,
+  body.ui-modern:not(.shell-with-ranking) .topbar {
+    grid-template-rows: var(--mobile-topbar-main-h) !important;
+    min-height: calc(var(--mobile-topbar-main-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top))) !important;
+  }
+
+  body.ui-modern.shell-no-ranking #topbarStats,
+  body.ui-modern.shell-no-ranking .topbar-stats,
+  body.ui-modern:not(.shell-with-ranking) #topbarStats,
+  body.ui-modern:not(.shell-with-ranking) .topbar-stats {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+  }
+
+  body.ui-modern.shell-no-ranking #metasPanel,
+  body.ui-modern.shell-no-ranking .metas-panel,
+  body.ui-modern:not(.shell-with-ranking) #metasPanel,
+  body.ui-modern:not(.shell-with-ranking) .metas-panel {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
   body.ui-modern.page-venta,
   body.ui-modern.page-venta:has(.brand-hero-plate),
-  body.ui-modern:has(.brand-hero-plate):not(.page-venta) {
+  body.ui-modern.shell-with-ranking:has(.brand-hero-plate) {
+    padding-top: calc(
+      var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + var(--mobile-metas-h)
+      + max(env(safe-area-inset-top), constant(safe-area-inset-top))
+    ) !important;
+  }
+
+  body.ui-modern.shell-with-ranking:not(.page-venta):has(.brand-hero-plate):not(.page-dashboard) {
     padding-top: calc(
       var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h) + var(--mobile-metas-h)
       + max(env(safe-area-inset-top), constant(safe-area-inset-top))
@@ -436,7 +484,7 @@ body.ui-modern.page-login {
   body.ui-modern .metas-panel,
   body.ui-modern .metas-panel--premium,
   body.ui-modern.page-venta .metas-panel--premium,
-  body.ui-modern:not(.page-venta) .metas-panel--premium {
+  body.ui-modern.shell-with-ranking .metas-panel--premium {
     position: fixed !important;
     top: calc(
       var(--mobile-topbar-main-h) + var(--mobile-topbar-stats-h)
@@ -449,6 +497,10 @@ body.ui-modern.page-login {
     padding: 4px max(8px, env(safe-area-inset-left)) 6px max(8px, env(safe-area-inset-right)) !important;
     overflow: hidden !important;
     z-index: 998 !important;
+  }
+
+  body.ui-modern.shell-no-ranking .ar-bell-dropdown {
+    top: calc(var(--mobile-topbar-main-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top)) + 6px) !important;
   }
 
   body.ui-modern .metas-panel__header {
@@ -478,11 +530,156 @@ body.ui-modern.page-login {
   body.ui-modern .metas-panel__viewport {
     overflow-x: hidden !important;
     overflow-y: auto !important;
-    max-height: calc(var(--mobile-metas-h) - 28px) !important;
+    max-height: calc(var(--mobile-metas-h) - 24px) !important;
     touch-action: pan-y !important;
     -webkit-overflow-scrolling: touch;
     mask-image: none !important;
     -webkit-mask-image: none !important;
+  }
+
+  /* ─── DRAWER lateral (no tapa media pantalla con contenido vivo) ─── */
+  body.ui-modern .sb-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2500 !important;
+    background: rgba(0, 0, 0, 0.58) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  body.ui-modern .sidebar {
+    left: 0 !important;
+    width: min(82vw, 320px) !important;
+    max-width: min(82vw, 320px) !important;
+    --sb-w: min(82vw, 320px);
+    transform: translateX(-105%) !important;
+    transition: transform 0.25s ease !important;
+    z-index: 3000 !important;
+    padding-top: calc(max(env(safe-area-inset-top), constant(safe-area-inset-top)) + 8px) !important;
+    box-shadow: 16px 0 48px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  body.ui-modern .sidebar.open {
+    transform: translateX(0) !important;
+    left: 0 !important;
+  }
+
+  body.ui-modern .sidebar.sidebar--collapsed {
+    --sb-w: min(82vw, 320px);
+    width: min(82vw, 320px) !important;
+  }
+
+  body.ui-modern.sidebar-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none;
+  }
+
+  body.ui-modern.sidebar-open .topbar,
+  body.ui-modern.sidebar-open #metasPanel,
+  body.ui-modern.sidebar-open .brand-hero-plate,
+  body.ui-modern.sidebar-open .card,
+  body.ui-modern.sidebar-open .dashboard,
+  body.ui-modern.sidebar-open .venta-wrap,
+  body.ui-modern.sidebar-open .wrap {
+    pointer-events: none;
+  }
+
+  body.ui-modern.sidebar-open .sidebar,
+  body.ui-modern.sidebar-open .sb-backdrop.open {
+    pointer-events: auto;
+  }
+
+  body.ui-modern .sb-pin {
+    display: none !important;
+  }
+
+  /* ─── Contenido página: pantalla completa ─── */
+  body.ui-modern .card,
+  body.ui-modern .dashboard,
+  body.ui-modern .wrap,
+  body.ui-modern .venta-wrap,
+  body.ui-modern .gnr-section,
+  body.ui-modern .lim-wrap,
+  body.ui-modern .cu-page,
+  body.ui-modern main,
+  body.ui-modern .content,
+  body.ui-modern .page-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
+  }
+
+  body.ui-modern .card,
+  body.ui-modern.page-reporte .card,
+  body.ui-modern.page-historial-pagos .card,
+  body.ui-modern.page-resumen .card,
+  body.ui-modern.page-app .card,
+  body.ui-modern .panel,
+  body.ui-modern .report-card,
+  body.ui-modern .summary-card {
+    padding: 12px !important;
+    margin: 8px 0 !important;
+    max-width: 100% !important;
+    background: #071426 !important;
+    color: #f5f7fb !important;
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  }
+
+  body.ui-modern .card *,
+  body.ui-modern .panel *,
+  body.ui-modern.page-reporte .card *,
+  body.ui-modern.page-historial-pagos .card * {
+    max-width: 100%;
+  }
+
+  body.ui-modern.page-reporte [style*="background:#fff"],
+  body.ui-modern.page-reporte [style*="background: white"],
+  body.ui-modern.page-reporte [style*="background:#f8fafc"],
+  body.ui-modern.page-historial-pagos [style*="background:#fff"],
+  body.ui-modern.page-resumen [style*="background:#fff"] {
+    background: #0f1e35 !important;
+    color: #e2e8f0 !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
+  }
+
+  /* Tablas reportes */
+  body.ui-modern .table-wrap,
+  body.ui-modern .table-responsive,
+  body.ui-modern .lim-table-wrap,
+  body.ui-modern .modern-table-wrap,
+  body.ui-modern .tabla-resultados {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  body.ui-modern table {
+    min-width: min(100%, 650px);
+  }
+
+  /* Botón flotante Venta */
+  body.ui-modern .venta-btn {
+    position: fixed !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 72px) !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+    z-index: 1500 !important;
+    transform: scale(0.88);
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  body.ui-modern.page-venta .venta-btn,
+  body.ui-modern.page-venta a.venta-btn {
+    display: none !important;
+    visibility: hidden !important;
   }
 
   body.ui-modern #metasPanelTrack,
@@ -513,8 +710,8 @@ body.ui-modern.page-login {
     min-width: 0 !important;
     max-width: 100% !important;
     height: auto !important;
-    min-height: 40px !important;
-    max-height: 40px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
     padding: 0 !important;
     margin: 0 !important;
     transform: none !important;
@@ -638,8 +835,12 @@ body.ui-modern.page-login {
   }
 
   body.ui-modern .venta-btn {
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 72px) !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+  }
+
+  body.ui-modern.shell-no-ranking .ar-toast-wrap {
+    top: calc(var(--mobile-topbar-main-h) + max(env(safe-area-inset-top), constant(safe-area-inset-top)) + 8px) !important;
   }
 
   body.ui-modern .ar-toast-wrap {

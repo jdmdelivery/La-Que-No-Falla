@@ -1204,7 +1204,11 @@ body.ui-modern.page-venta .venta-flash--info {
     min-width: 100px;
   }
   body.ui-modern .meta-card {
-    min-width: 220px !important;
+    min-width: 0 !important;
+  }
+
+  body.ui-modern.shell-with-ranking .meta-card {
+    min-width: 0 !important;
   }
   body.ui-modern .metas-panel__arrow {
     flex: 0 0 36px;
