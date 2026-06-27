@@ -10237,15 +10237,13 @@ def _banco_bool_from_row(val):
 
 
 def _banco_bool_for_db(val):
-    """Valor para INSERT: bool en PostgreSQL, 0/1 en SQLite."""
+    """Valor para INSERT en banco_movimientos.afecta_banco (INTEGER en app schema)."""
     if isinstance(val, bool):
         b = val
     elif isinstance(val, (int, float)):
         b = bool(int(val))
     else:
         b = _banco_bool_from_row(val)
-    if _banco_is_pg():
-        return bool(b)
     return 1 if b else 0
 
 
@@ -10294,10 +10292,20 @@ def _banco_pg_txn(cur):
 def _banco_has_referencia_col(cur):
     """True si la columna referencia_movimiento_id existe (migración aplicada)."""
     try:
+        if _banco_is_pg():
+            cur.execute(
+                """
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'banco_movimientos'
+                  AND column_name = 'referencia_movimiento_id'
+                LIMIT 1
+                """
+            )
+            return cur.fetchone() is not None
         cur.execute(_sql("SELECT referencia_movimiento_id FROM banco_movimientos LIMIT 0"))
         return True
     except Exception:
-        _rollback_pg_cursor(cur)
         return False
 
 
@@ -33304,8 +33312,15 @@ def venta():
 
                 cur.execute(_sql("UPDATE tickets SET monto = %s WHERE id = %s"), (total_ticket, ticket_id))
                 try:
+                    if os.environ.get("DATABASE_URL"):
+                        _pg_ensure_transaction_for_savepoints(cur)
                     cur.execute("SAVEPOINT venta_sync_balance")
-                    _sync_balance_cajero(cur, bool(os.environ.get("DATABASE_URL")), cajero_username=cajero)
+                    _sync_balance_cajero(
+                        cur,
+                        bool(os.environ.get("DATABASE_URL")),
+                        cajero_username=cajero,
+                        cajero_user_id=cajero_id_sesion,
+                    )
                     cur.execute("RELEASE SAVEPOINT venta_sync_balance")
                 except Exception as _bc_e:
                     log.warning("sync balance cajero venta: %s", _bc_e, exc_info=True)
