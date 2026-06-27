@@ -3882,10 +3882,16 @@ QUINIELAS_CONECTATE = {
     "Florida Noche": "Florida Noche",
     "La Suerte MD": "La Suerte MD",
     "La Suerte 6PM": "La Suerte 6PM",
+    "La Suerte Día": "La Suerte MD",
+    "La Suerte Dia": "La Suerte MD",
+    "La Suerte Tarde": "La Suerte 6PM",
     "LoteDom": "LoteDom",
     "LotoDom": "LoteDom",
     "King Lottery 12:30": "King Lottery 12:30",
     "King Lottery 7:30": "King Lottery 7:30",
+    "King Lottery Día": "King Lottery 12:30",
+    "King Lottery Dia": "King Lottery 12:30",
+    "King Lottery Noche": "King Lottery 7:30",
     "Anguila 10:00 AM": "Anguila 10:00 AM",
     "Anguila 1:00 PM": "Anguila 1:00 PM",
     "Anguila 6:00 PM": "Anguila 6:00 PM",
@@ -3995,6 +4001,29 @@ def _conectate_title_sin_tildes(s):
     )
 
 
+def _conectate_title_mapeo_diagnostico(title_raw):
+    """Diagnóstico de mapeo Conectate/LD → clave interna y sorteo en BD."""
+    internal = _conectate_label_to_internal_key(title_raw)
+    lot_db, draw_db = RESULT_LOTTERY_TO_TICKET.get(internal, (None, None)) if internal else (None, None)
+    nt = _conectate_title_sin_tildes(title_raw or "").strip().lower()
+    motivo = None
+    if not title_raw:
+        motivo = "titulo_vacio"
+    elif internal is None:
+        motivo = "titulo_sin_mapeo_clave_interna"
+    elif not lot_db:
+        motivo = "clave_sin_entrada_RESULT_LOTTERY_TO_TICKET"
+    return {
+        "title_original": title_raw,
+        "title_normalizado": nt,
+        "clave_interna": internal,
+        "loteria_bd": lot_db,
+        "sorteo_bd": draw_db,
+        "mapeado": bool(internal and lot_db),
+        "motivo_ignorado": motivo,
+    }
+
+
 def _conectate_label_to_internal_key(text):
     """
     Mapea el texto del <span> en Conectate a clave interna de RESULT_LOTTERY_TO_TICKET.
@@ -4012,9 +4041,20 @@ def _conectate_label_to_internal_key(text):
         return "__primera_1900"
     if "primera día" in tl or "primera dia" in tl or "la primera día" in tl or "la primera dia" in tl:
         return "__primera_1200"
-    if "la suerte 12:30" in tl or tl == "la suerte md":
+    nt = _conectate_title_sin_tildes(text).strip().lower()
+    if "la suerte" in nt:
+        if any(x in nt for x in ("tarde", "18:00", "6:00", "6pm", "18:")):
+            return "La Suerte 6PM"
+        if any(x in nt for x in ("dia", "12:30", " md", "manana", "medio", "mediodia")):
+            return "La Suerte MD"
+    if "king lottery" in nt:
+        if any(x in nt for x in ("noche", "7:30", "19:", "7:3")):
+            return "King Lottery 7:30"
+        if any(x in nt for x in ("dia", "12:30", "medio", "manana", "mediodia")):
+            return "King Lottery 12:30"
+    if "la suerte 12:30" in nt or nt == "la suerte md":
         return "La Suerte MD"
-    if "la suerte 18:00" in tl or "la suerte 6pm" in tl:
+    if "la suerte 18:00" in nt or "la suerte 6pm" in nt:
         return "La Suerte 6PM"
     if "quiniela lotedom" in tl or tl in ("lotedom", "lotodom"):
         return "LoteDom"
@@ -5214,10 +5254,26 @@ def _resultados_parse_desde_api(fuente, page_url, api_base):
     resultados = {}
     errores = []
     for site_game_id, title_raw in catalogo:
-        internal = _conectate_label_to_internal_key(title_raw)
+        diag = _conectate_title_mapeo_diagnostico(title_raw)
+        internal = diag.get("clave_interna")
         if internal is None:
+            if "suerte" in (diag.get("title_normalizado") or "") or "king" in (diag.get("title_normalizado") or ""):
+                _resultados_hoy_debug_log(
+                    "IGNORADO fuente=%s title_api=%r title_norm=%r motivo=%s site_game_id=%s",
+                    fuente,
+                    title_raw,
+                    diag.get("title_normalizado"),
+                    diag.get("motivo_ignorado"),
+                    site_game_id,
+                )
             continue
         if internal not in RESULT_LOTTERY_TO_TICKET:
+            _resultados_hoy_debug_log(
+                "IGNORADO fuente=%s title_api=%r clave=%r motivo=clave_sin_RESULT_LOTTERY_TO_TICKET",
+                fuente,
+                title_raw,
+                internal,
+            )
             continue
         lot_db, draw_db = RESULT_LOTTERY_TO_TICKET.get(internal, (None, None))
         try:
@@ -5253,8 +5309,12 @@ def _resultados_parse_desde_api(fuente, page_url, api_base):
             fecha_iso = _resultados_session_fecha_rd_iso(sess.get("date"), hoy_iso)
             if not _resultados_session_fecha_aceptable(fecha_iso, hoy_iso):
                 _resultados_hoy_debug_log(
-                    "fecha fuera de ventana loteria=%r fecha=%s hoy=%s",
+                    "IGNORADO fuente=%s title_api=%r loteria=%r sorteo=%r numeros=%s fecha=%s hoy=%s motivo=fecha_fuera_ventana",
+                    fuente,
+                    title_raw,
                     lot_db,
+                    draw_db,
+                    nums,
                     fecha_iso,
                     hoy_iso,
                 )
@@ -5270,6 +5330,18 @@ def _resultados_parse_desde_api(fuente, page_url, api_base):
                 "title": title_raw,
                 "badge": fecha_iso,
             }
+            _resultados_hoy_debug_log(
+                "GUARDADO_PARSE fuente=%s title_api=%r title_norm=%r clave=%r loteria=%r sorteo=%r numeros=%s fecha=%s site_game_id=%s",
+                fuente,
+                title_raw,
+                diag.get("title_normalizado"),
+                internal,
+                lot_db,
+                draw_db,
+                nums,
+                fecha_iso,
+                site_game_id,
+            )
             _resultados_hoy_debug_log(
                 "Lotería detectada=%r sorteo=%r hora=%r numeros=%s fecha=%s url=%s status=%s tiempo=%.2fs -> OK",
                 lot_db,
@@ -5295,6 +5367,144 @@ def _resultados_parse_desde_api(fuente, page_url, api_base):
     if not resultados and errores:
         raise ValueError("; ".join(errores[:5]))
     return resultados
+
+
+def _resultados_diagnostico_item_api(fuente, api_base, site_game_id, title_raw, hoy_iso=None):
+    """Evalúa un site-game: mapeo, números API y si se guardaría en BD."""
+    hoy_iso = str(hoy_iso or ahora_rd().date().strftime("%Y-%m-%d"))[:10]
+    fila = {
+        "fuente": fuente,
+        "site_game_id": site_game_id,
+        "api_url": f"{str(api_base).rstrip('/')}/site-games/{site_game_id}",
+        "raw_api": None,
+        "raw_session": None,
+        "numeros": [],
+        "fecha_api": None,
+        "estado_parse": "pendiente",
+        "estado_guardado": "no_evaluado",
+        "motivo": None,
+    }
+    fila.update(_conectate_title_mapeo_diagnostico(title_raw))
+    if not fila.get("mapeado"):
+        fila["estado_parse"] = "ignorado"
+        fila["estado_guardado"] = "ignorado"
+        fila["motivo"] = fila.get("motivo_ignorado") or "sin_mapeo"
+        return fila
+    lot_db = fila.get("loteria_bd")
+    draw_db = fila.get("sorteo_bd")
+    try:
+        resp, api_url, _elapsed = _resultados_fetch_site_game_api(api_base, site_game_id)
+        fila["api_url"] = api_url
+        fila["raw_api"] = resp.json() if resp.status_code == 200 else {"status": resp.status_code}
+        if resp.status_code != 200:
+            fila["estado_parse"] = "error"
+            fila["estado_guardado"] = "ignorado"
+            fila["motivo"] = f"http_{resp.status_code}"
+            return fila
+        game = (fila["raw_api"] or {}).get("game") if isinstance(fila["raw_api"], dict) else {}
+        sessions = (game or {}).get("sessions") or []
+        if not sessions:
+            fila["estado_parse"] = "ignorado"
+            fila["estado_guardado"] = "ignorado"
+            fila["motivo"] = "sin_sesiones_api"
+            return fila
+        sess = sessions[0]
+        fila["raw_session"] = sess
+        nums = _resultados_score_a_numeros(sess.get("score"))
+        fecha_iso = _resultados_session_fecha_rd_iso(sess.get("date"), hoy_iso)
+        fila["fecha_api"] = fecha_iso
+        if not nums:
+            fila["estado_parse"] = "ignorado"
+            fila["estado_guardado"] = "ignorado"
+            fila["motivo"] = "score_incompleto"
+            return fila
+        fila["numeros"] = list(nums)
+        if not _resultados_session_fecha_aceptable(fecha_iso, hoy_iso):
+            fila["estado_parse"] = "ignorado"
+            fila["estado_guardado"] = "ignorado"
+            fila["motivo"] = "fecha_fuera_ventana"
+            return fila
+        fila["estado_parse"] = "ok"
+        try:
+            c = db()
+            if not c:
+                fila["estado_guardado"] = "sin_bd"
+                fila["motivo"] = "sin_conexion_bd"
+                return fila
+            cur = c.cursor()
+            prev = _resultado_fetch_numeros(cur, lot_db, draw_db, fecha_iso)
+            new_norm = _norm_resultado_tres_digitos(nums[0], nums[1], nums[2])
+            if prev is not None and tuple(prev) == tuple(new_norm):
+                fila["estado_guardado"] = "sin_cambio"
+                fila["motivo"] = "ya_existe_mismo_resultado"
+            elif guardar_resultado(
+                cur, lot_db, draw_db, fecha_iso, nums[0], nums[1], nums[2], forzar_actualizacion=False
+            ):
+                fila["estado_guardado"] = "guardaria"
+                fila["motivo"] = "listo_para_guardar"
+            else:
+                fila["estado_guardado"] = "rechazado_bd"
+                fila["motivo"] = "guardar_resultado_rechazo_validacion"
+            try:
+                c.rollback()
+            except Exception:
+                pass
+            try:
+                c.close()
+            except Exception:
+                pass
+        except Exception as ex:
+            fila["estado_guardado"] = "error_bd"
+            fila["motivo"] = str(ex)[:200]
+    except Exception as ex:
+        fila["estado_parse"] = "error"
+        fila["estado_guardado"] = "ignorado"
+        fila["motivo"] = str(ex)[:200]
+    return fila
+
+
+def _debug_la_suerte_king_scraper_filas():
+    """Filas de diagnóstico para La Suerte + King (Conectate y fallback LD)."""
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    filas = []
+    fuentes = (
+        ("Conectate", CONECTATE_LOTERIAS_PAGE, CONECTATE_API_BASE),
+        ("LoteriasDominicanas", LD_LOTERIAS_PAGE, LD_API_BASE),
+    )
+
+    def _es_objetivo(title):
+        nt = _conectate_title_sin_tildes(title or "").strip().lower()
+        if not nt:
+            return False
+        if "la suerte" in nt or "king lottery" in nt or nt.startswith("king "):
+            return True
+        return title in (
+            "La Suerte MD",
+            "La Suerte 6PM",
+            "La Suerte 12:30",
+            "La Suerte 18:00",
+            "King Lottery 12:30",
+            "King Lottery 7:30",
+        )
+
+    for fuente, page_url, api_base in fuentes:
+        bloque = {"fuente": fuente, "page_url": page_url, "api_base": api_base, "error": None, "items": []}
+        try:
+            pool, payload_url, _st = _resultados_nuxt_pool_desde_pagina(page_url)
+            bloque["payload_url"] = payload_url
+            catalogo = _resultados_catalogo_site_games(pool)
+            bloque["catalogo_total"] = len(catalogo)
+            for site_game_id, title_raw in catalogo:
+                if not _es_objetivo(title_raw):
+                    continue
+                item = _resultados_diagnostico_item_api(
+                    fuente, api_base, site_game_id, title_raw, hoy_iso=hoy_iso
+                )
+                bloque["items"].append(item)
+        except Exception as ex:
+            bloque["error"] = str(ex)
+        filas.append(bloque)
+    return filas
 
 
 def _parse_loteriasdominicanas_resultados():
@@ -5448,6 +5658,15 @@ def _conectate_resultados_desde_soup(
         internal = _conectate_label_to_internal_key(title_raw)
         if internal is None:
             bloques_sin_mapa += 1
+            diag = _conectate_title_mapeo_diagnostico(title_raw)
+            _resultados_hoy_debug_log(
+                "IGNORADO HTML title=%r title_norm=%r badge=%r motivo=%s modo=%s",
+                title_raw,
+                diag.get("title_normalizado"),
+                btxt,
+                diag.get("motivo_ignorado"),
+                modo,
+            )
             log.debug(
                 "scraper_conectate: título sin mapeo (%s): badge=%r title=%r",
                 modo,
@@ -50540,6 +50759,76 @@ def api_admin_lineas_eval_hoy():
 # ===============================
 # INGRESAR RESULTADOS
 # ===============================
+@app.route("/admin/debug-la-suerte")
+def admin_debug_la_suerte():
+    """Diagnóstico temporal: La Suerte + King Lottery (Conectate y fallback LD)."""
+    if not is_admin_or_super():
+        return redirect("/")
+    import json as _json
+
+    bloques = _debug_la_suerte_king_scraper_filas()
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    rows_html = ""
+    for bloque in bloques:
+        fuente = bloque.get("fuente", "-")
+        if bloque.get("error"):
+            rows_html += (
+                f"<tr><td colspan='11'><b>{fuente}</b> — ERROR: {bloque.get('error')}</td></tr>"
+            )
+            continue
+        for it in bloque.get("items") or []:
+            raw_sess = it.get("raw_session") or {}
+            raw_api = it.get("raw_api")
+            raw_preview = _json.dumps(
+                {"session": raw_sess, "game_keys": list((raw_api or {}).get("game", {}).keys()) if isinstance(raw_api, dict) else raw_api},
+                ensure_ascii=False,
+                default=str,
+            )[:800]
+            rows_html += (
+                "<tr>"
+                f"<td>{fuente}</td>"
+                f"<td>{it.get('title_original', '-')}</td>"
+                f"<td>{it.get('title_normalizado', '-')}</td>"
+                f"<td>{it.get('clave_interna') or '-'}</td>"
+                f"<td>{it.get('loteria_bd') or '-'}</td>"
+                f"<td>{it.get('sorteo_bd') or '-'}</td>"
+                f"<td>{', '.join(str(x) for x in (it.get('numeros') or []))}</td>"
+                f"<td>{it.get('fecha_api') or '-'}</td>"
+                f"<td>{it.get('estado_parse', '-')}</td>"
+                f"<td>{it.get('estado_guardado', '-')}</td>"
+                f"<td>{it.get('motivo') or ''}</td>"
+                f"<td><details><summary>raw</summary><pre style='white-space:pre-wrap;font-size:11px'>{raw_preview}</pre></details></td>"
+                f"<td style='font-size:11px'>{it.get('site_game_id', '')}</td>"
+                "</tr>"
+            )
+        if not (bloque.get("items") or []):
+            rows_html += (
+                f"<tr><td>{fuente}</td><td colspan='12'>Sin ítems La Suerte/King en catálogo "
+                f"({bloque.get('catalogo_total', 0)} juegos)</td></tr>"
+            )
+
+    return f"""<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Debug La Suerte / King</title>
+<style>body{{font-family:system-ui,sans-serif;margin:24px;font-size:14px}}
+table{{border-collapse:collapse;width:100%}}th,td{{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}}
+th{{background:#f0f4f8}}pre{{max-width:420px}}</style>
+</head><body>
+<h1>Debug La Suerte / King Lottery</h1>
+<p>Hoy RD: <b>{hoy_iso}</b>. Compara Conectate vs fallback LoteriasDominicanas.</p>
+<p><b>Causa raíz típica:</b> Conectate renombró títulos API a «La Suerte Día/Tarde» y «King Lottery Día/Noche»;
+el parser solo reconocía «La Suerte 12:30», «La Suerte 18:00», «King Lottery 12:30/7:30».</p>
+<table>
+<thead><tr>
+<th>Fuente</th><th>Título API</th><th>Normalizado</th><th>Clave interna</th><th>Lotería BD</th><th>Sorteo BD</th>
+<th>Números</th><th>Fecha API</th><th>Parse</th><th>Guardado</th><th>Motivo</th><th>Raw</th><th>site_game_id</th>
+</tr></thead>
+<tbody>{rows_html or '<tr><td colspan="13">Sin datos</td></tr>'}</tbody>
+</table>
+<p><a href="/admin/test-scraper-resultados">Test scraper general</a> ·
+<a href="/actualizar_resultados">Ejecutar scrape</a> · <a href="/admin/resultados">Resultados</a></p>
+</body></html>"""
+
+
 @app.route("/admin/test-scraper-resultados")
 def admin_test_scraper_resultados():
     """Diagnóstico del scraper Conectate + fallback LoteriasDominicanas (solo resultados)."""
