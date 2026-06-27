@@ -3933,6 +3933,11 @@ CONECTATE_LOTERIAS_PAGE = "https://www.conectate.com.do/loterias/"
 CONECTATE_API_BASE = "https://api.temp.conectate.com.do/conectate"
 LD_LOTERIAS_PAGE = "https://loteriasdominicanas.com/"
 LD_API_BASE = "https://api.loteriasdominicanas.com/dominicana"
+LOT_DOM_DO_PAGE = "https://www.loteriadominicana.com.do/"
+SORTEOS_RD_PAGE = "https://www.sorteosrd.com/"
+ENLOTERIA_BASE = "https://enloteria.com/"
+LD_US_PAGE = "https://www.loteriasdominicanas.us/"
+LEIDSA_OFICIAL_PAGE = "https://www.leidsa.com/"
 NC_HISTORICO_URL = "https://www.conectate.com.do/loterias/pagina/ultimos-resultados"
 NC_HISTORICO_MIN_DATE = date(2005, 1, 1)
 NC_HISTORICO_TARGETS = [
@@ -4052,6 +4057,20 @@ def _conectate_label_to_internal_key(text):
             return "King Lottery 7:30"
         if any(x in nt for x in ("dia", "12:30", "medio", "manana", "mediodia")):
             return "King Lottery 12:30"
+    if "sxm" in nt or "philipsburg" in nt:
+        if "noche" in nt:
+            return "King Lottery 7:30"
+        if "dia" in nt:
+            return "King Lottery 12:30"
+    if "quiniela la suerte" in nt:
+        if "6pm" in nt or "6 pm" in nt:
+            return "La Suerte 6PM"
+        return "La Suerte MD"
+    if "la suerte dominicana" in nt:
+        if "noche" in nt or "tarde" in nt:
+            return "La Suerte 6PM"
+        if "dia" in nt:
+            return "La Suerte MD"
     if "la suerte 12:30" in nt or nt == "la suerte md":
         return "La Suerte MD"
     if "la suerte 18:00" in nt or "la suerte 6pm" in nt:
@@ -5464,30 +5483,29 @@ def _resultados_diagnostico_item_api(fuente, api_base, site_game_id, title_raw, 
 
 
 def _debug_la_suerte_king_scraper_filas():
-    """Filas de diagnóstico para La Suerte + King (Conectate y fallback LD)."""
+    """Diagnóstico La Suerte + King en las 7 fuentes RD integradas."""
     hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
-    filas = []
-    fuentes = (
-        ("Conectate", CONECTATE_LOTERIAS_PAGE, CONECTATE_API_BASE),
-        ("LoteriasDominicanas", LD_LOTERIAS_PAGE, LD_API_BASE),
+    objetivos = (
+        "La Suerte MD",
+        "La Suerte 6PM",
+        "King Lottery 12:30",
+        "King Lottery 7:30",
     )
+    merged, por_fuente = _resultados_recopilar_todas_fuentes_rd()
+    filas = []
 
     def _es_objetivo(title):
         nt = _conectate_title_sin_tildes(title or "").strip().lower()
         if not nt:
             return False
-        if "la suerte" in nt or "king lottery" in nt or nt.startswith("king "):
+        if "la suerte" in nt or "king" in nt or "sxm" in nt:
             return True
-        return title in (
-            "La Suerte MD",
-            "La Suerte 6PM",
-            "La Suerte 12:30",
-            "La Suerte 18:00",
-            "King Lottery 12:30",
-            "King Lottery 7:30",
-        )
+        return title in objetivos
 
-    for fuente, page_url, api_base in fuentes:
+    for fuente, page_url, api_base in (
+        ("Conectate", CONECTATE_LOTERIAS_PAGE, CONECTATE_API_BASE),
+        ("LoteriasDominicanas", LD_LOTERIAS_PAGE, LD_API_BASE),
+    ):
         bloque = {"fuente": fuente, "page_url": page_url, "api_base": api_base, "error": None, "items": []}
         try:
             pool, payload_url, _st = _resultados_nuxt_pool_desde_pagina(page_url)
@@ -5504,12 +5522,468 @@ def _debug_la_suerte_king_scraper_filas():
         except Exception as ex:
             bloque["error"] = str(ex)
         filas.append(bloque)
+
+    for nombre in (
+        "LoteriaDominicanaDO",
+        "SorteosRD",
+        "EnLoteria",
+        "LoteriasDominicanasUS",
+        "LeidsaOficial",
+    ):
+        data = por_fuente.get(nombre) or {}
+        bloque = {"fuente": nombre, "error": None, "items": [], "catalogo_total": len(data)}
+        for key in objetivos:
+            item = data.get(key)
+            if not item:
+                continue
+            lot_db, draw_db = RESULT_LOTTERY_TO_TICKET.get(key, (None, None))
+            bloque["items"].append(
+                {
+                    "title_original": item.get("title"),
+                    "title_normalizado": _conectate_title_sin_tildes(item.get("title") or "").lower(),
+                    "clave_interna": key,
+                    "loteria_bd": lot_db,
+                    "sorteo_bd": draw_db,
+                    "numeros": [item.get("n1"), item.get("n2"), item.get("n3")],
+                    "fecha_api": item.get("fecha"),
+                    "estado_parse": "ok",
+                    "estado_guardado": "en_mapa_fuente",
+                    "motivo": item.get("fuente") or nombre,
+                    "raw_session": item,
+                }
+            )
+        filas.append(bloque)
+
+    bloque_merged = {"fuente": "MERGED (guardaría)", "error": None, "items": [], "catalogo_total": len(merged)}
+    for key in objetivos:
+        item = merged.get(key)
+        if not item:
+            bloque_merged["items"].append(
+                {
+                    "title_original": "-",
+                    "clave_interna": key,
+                    "estado_parse": "falta",
+                    "estado_guardado": "no",
+                    "motivo": "ninguna_fuente_entrego_esta_clave",
+                }
+            )
+            continue
+        lot_db, draw_db = RESULT_LOTTERY_TO_TICKET.get(key, (None, None))
+        bloque_merged["items"].append(
+            {
+                "title_original": item.get("title"),
+                "clave_interna": key,
+                "loteria_bd": lot_db,
+                "sorteo_bd": draw_db,
+                "numeros": [item.get("n1"), item.get("n2"), item.get("n3")],
+                "fecha_api": item.get("fecha"),
+                "estado_parse": "ok",
+                "estado_guardado": "listo",
+                "motivo": "fuente_merge=%s" % item.get("fuente_merge"),
+            }
+        )
+    filas.append(bloque_merged)
     return filas
 
 
 def _parse_loteriasdominicanas_resultados():
     """Fallback: loteriasdominicanas.com vía API Nuxt."""
     return _resultados_parse_desde_api("LoteriasDominicanas", LD_LOTERIAS_PAGE, LD_API_BASE)
+
+
+def _resultados_build_item(n1, n2, n3, fecha_iso, title, fuente, badge=None):
+    """Dict estándar para guardado (clave interna → item)."""
+    nums = _resultados_score_a_numeros([[str(n1), str(n2), str(n3)]])
+    if not nums:
+        return None
+    fe = str(fecha_iso or ahora_rd().date().strftime("%Y-%m-%d"))[:10]
+    return {
+        "n1": nums[0],
+        "n2": nums[1],
+        "n3": nums[2],
+        "fecha": fe,
+        "title": title,
+        "badge": badge or fe,
+        "fuente": fuente,
+    }
+
+
+def _resultados_fecha_rd_desde_texto_es(txt, ref_hoy_iso=None):
+    """Parsea '26 Junio 2026' / ISO en texto a YYYY-MM-DD (calendario RD)."""
+    ref_iso = str(ref_hoy_iso or ahora_rd().date().strftime("%Y-%m-%d"))[:10]
+    s = str(txt or "")
+    m_iso = re.search(r"(\d{4})-(\d{2})-(\d{2})", s)
+    if m_iso:
+        return m_iso.group(0)
+    meses = {
+        "enero": 1,
+        "febrero": 2,
+        "marzo": 3,
+        "abril": 4,
+        "mayo": 5,
+        "junio": 6,
+        "julio": 7,
+        "agosto": 8,
+        "septiembre": 9,
+        "octubre": 10,
+        "noviembre": 11,
+        "diciembre": 12,
+    }
+    m = re.search(
+        r"(\d{1,2})\s+de?\s*([a-záéíóúñ]+)\s+de?\s*(\d{4})",
+        _conectate_title_sin_tildes(s).lower(),
+    )
+    if not m:
+        m = re.search(
+            r"(\d{1,2})\s+([a-z]+)\s+(\d{4})",
+            _conectate_title_sin_tildes(s).lower(),
+        )
+    if m:
+        d, mes_txt, y = m.groups()
+        mes = meses.get(mes_txt.strip()[:12], 0)
+        if mes:
+            try:
+                return date(int(y), mes, int(d)).strftime("%Y-%m-%d")
+            except Exception:
+                pass
+    m2 = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", s)
+    if m2:
+        d, mo, y = m2.groups()
+        try:
+            return date(int(y), int(mo), int(d)).strftime("%Y-%m-%d")
+        except Exception:
+            pass
+    return ref_iso
+
+
+def _resultados_put_map(out, internal_key, item, fuente):
+    if not internal_key or internal_key not in RESULT_LOTTERY_TO_TICKET or not item:
+        return
+    prev = out.get(internal_key)
+    if not prev:
+        out[internal_key] = item
+        _resultados_hoy_debug_log(
+            "GUARDADO_PARSE fuente=%s clave=%r title=%r numeros=%s,%s,%s fecha=%s",
+            fuente,
+            internal_key,
+            item.get("title"),
+            item.get("n1"),
+            item.get("n2"),
+            item.get("n3"),
+            item.get("fecha"),
+        )
+        return
+    pf = (prev.get("fecha") or "")[:10]
+    nf = (item.get("fecha") or "")[:10]
+    if nf > pf:
+        out[internal_key] = item
+
+
+def _parse_loteriadominicana_do_resultados():
+    """HTML: loteriadominicana.com.do (tarjetas result-item)."""
+    fuente = "LoteriaDominicanaDO"
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    out = {}
+    try:
+        resp = requests.get(
+            LOT_DOM_DO_PAGE,
+            timeout=22,
+            headers=_resultados_http_headers(),
+        )
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text or "", "html.parser")
+        for item in soup.select("div.result-item"):
+            h = item.select_one("h4")
+            if not h:
+                continue
+            title = h.get_text(" ", strip=True)
+            internal = _conectate_label_to_internal_key(title)
+            if not internal:
+                _resultados_hoy_debug_log(
+                    "IGNORADO fuente=%s title=%r motivo=sin_mapeo",
+                    fuente,
+                    title,
+                )
+                continue
+            nums = []
+            for node in item.select("div"):
+                t = node.get_text(strip=True)
+                if re.match(r"^\d{1,2}$", t):
+                    nums.append(t.zfill(2))
+                if len(nums) >= 3:
+                    break
+            if len(nums) < 3:
+                continue
+            body_txt = item.get_text(" ", strip=True)
+            fecha = _resultados_fecha_rd_desde_texto_es(body_txt, hoy_iso)
+            if fecha == hoy_iso and not re.search(
+                r"\d{1,2}/\d{1,2}/\d{4}|\d{1,2}\s+\w+\s+\d{4}", body_txt, re.I
+            ):
+                fecha = _resultados_fecha_rd_desde_texto_es(soup.get_text(" ", strip=True), hoy_iso)
+            built = _resultados_build_item(nums[0], nums[1], nums[2], fecha, title, fuente)
+            _resultados_put_map(out, internal, built, fuente)
+    except Exception as ex:
+        _resultados_hoy_debug_log("fuente %s ERROR: %s", fuente, ex)
+    return out
+
+
+def _parse_sorteosrd_resultados():
+    """HTML: sorteosrd.com (div.lottery-card + div.numero)."""
+    fuente = "SorteosRD"
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    out = {}
+    try:
+        resp = requests.get(
+            SORTEOS_RD_PAGE,
+            timeout=22,
+            headers=_resultados_http_headers(),
+        )
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text or "", "html.parser")
+        for card in soup.select("div.lottery-card"):
+            body = card.get_text(" ", strip=True)
+            bl = body.lower()
+            nums = []
+            for n in card.select("div.numero"):
+                t = n.get_text(strip=True)
+                if re.match(r"^\d{1,2}$", t):
+                    nums.append(t.zfill(2))
+                if len(nums) >= 3:
+                    break
+            if len(nums) < 3:
+                continue
+            title = ""
+            for tag in ("h3", "h4", "h5", "strong"):
+                el = card.select_one(tag)
+                if el:
+                    title = el.get_text(" ", strip=True)
+                    break
+            internal = None
+            if "king lottery" in bl or "king" in title.lower():
+                internal = (
+                    "King Lottery 7:30"
+                    if ("7:30" in bl or "noche" in bl or "dark_mode" in str(card))
+                    else "King Lottery 12:30"
+                )
+                title = title or "King Lottery"
+            elif "la suerte" in bl or "suerte" in title.lower():
+                internal = (
+                    "La Suerte 6PM"
+                    if ("6:00" in bl or "6pm" in bl or "dark_mode" in str(card))
+                    else "La Suerte MD"
+                )
+                title = title or "La Suerte"
+            else:
+                internal = _conectate_label_to_internal_key(title or body[:80])
+            if not internal:
+                continue
+            fecha = _resultados_fecha_rd_desde_texto_es(body, hoy_iso)
+            built = _resultados_build_item(nums[0], nums[1], nums[2], fecha, title or body[:60], fuente)
+            _resultados_put_map(out, internal, built, fuente)
+    except Exception as ex:
+        _resultados_hoy_debug_log("fuente %s ERROR: %s", fuente, ex)
+    return out
+
+
+def _parse_enloteria_resultados():
+    """HTML: enloteria.com (páginas por sorteo /resultados-*-hoy)."""
+    fuente = "EnLoteria"
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    slugs = (
+        ("resultados-la-suerte-hoy", "La Suerte MD"),
+        ("resultados-la-suerte-6pm-hoy", "La Suerte 6PM"),
+        ("resultados-king-lottery-dia-hoy", "King Lottery 12:30"),
+        ("resultados-king-lottery-noche-hoy", "King Lottery 7:30"),
+    )
+    out = {}
+    headers = _resultados_http_headers()
+    for slug, internal in slugs:
+        url = ENLOTERIA_BASE.rstrip("/") + "/" + slug
+        try:
+            resp = requests.get(url, timeout=20, headers=headers)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text or "", "html.parser")
+            nums = []
+            for el in soup.find_all(["div", "span", "p"]):
+                if el.find(["div", "span", "p"]):
+                    continue
+                t = el.get_text(strip=True)
+                if re.match(r"^\d{1,2}$", t):
+                    nums.append(t.zfill(2))
+                if len(nums) >= 3:
+                    break
+            if len(nums) < 3:
+                _resultados_hoy_debug_log(
+                    "IGNORADO fuente=%s url=%s clave=%r motivo=sin_numeros",
+                    fuente,
+                    url,
+                    internal,
+                )
+                continue
+            fecha = hoy_iso
+            parsed = _resultados_fecha_rd_desde_texto_es(soup.get_text(" ", strip=True)[:2000], hoy_iso)
+            if _resultados_session_fecha_aceptable(parsed, hoy_iso):
+                fecha = parsed
+            lot_db, draw_db = RESULT_LOTTERY_TO_TICKET.get(internal, (internal, ""))
+            title = "%s %s" % (lot_db, draw_db)
+            built = _resultados_build_item(nums[0], nums[1], nums[2], fecha, title, fuente)
+            _resultados_put_map(out, internal, built, fuente)
+        except Exception as ex:
+            _resultados_hoy_debug_log("fuente %s slug=%s ERROR: %s", fuente, slug, ex)
+    return out
+
+
+def _parse_loteriasdominicanas_us_resultados():
+    """HTML: loteriasdominicanas.us (texto agrupado por lotería)."""
+    fuente = "LoteriasDominicanasUS"
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    out = {}
+    patrones = (
+        (
+            r"La Suerte Dominicana\s+Dia\s+\d{1,2}\s+\w+\s+\d{4}\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})",
+            "La Suerte MD",
+            "La Suerte Dominicana Dia",
+        ),
+        (
+            r"La Suerte Dominicana\s+Noche\s+\d{1,2}\s+\w+\s+\d{4}\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})",
+            "La Suerte 6PM",
+            "La Suerte Dominicana Noche",
+        ),
+        (
+            r"SXM\s+Quiniela\s+Dia\s+\d{1,2}\s+\w+\s+\d{4}\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})",
+            "King Lottery 12:30",
+            "SXM Quiniela Dia",
+        ),
+        (
+            r"SXM\s+Quiniela\s+Noche\s+\d{1,2}\s+\w+\s+\d{4}\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})",
+            "King Lottery 7:30",
+            "SXM Quiniela Noche",
+        ),
+    )
+    try:
+        resp = requests.get(LD_US_PAGE, timeout=22, headers=_resultados_http_headers())
+        resp.raise_for_status()
+        txt = resp.text or ""
+        plain = BeautifulSoup(txt, "html.parser").get_text(" ", strip=True)
+        for pat, internal, title in patrones:
+            m = re.search(pat, plain, re.I)
+            if not m:
+                _resultados_hoy_debug_log(
+                    "IGNORADO fuente=%s title=%r motivo=patron_no_encontrado",
+                    fuente,
+                    title,
+                )
+                continue
+            fecha = _resultados_fecha_rd_desde_texto_es(m.group(0), hoy_iso)
+            built = _resultados_build_item(m.group(1), m.group(2), m.group(3), fecha, title, fuente)
+            _resultados_put_map(out, internal, built, fuente)
+    except Exception as ex:
+        _resultados_hoy_debug_log("fuente %s ERROR: %s", fuente, ex)
+    return out
+
+
+def _parse_leidsa_oficial_resultados():
+    """
+    leidsa.com — solo juegos LEIDSA (Pega 3 / Quiniela Leidsa).
+    La Suerte y King no aplican; Conectate/LD ya cubren Leidsa vía API.
+    """
+    fuente = "LeidsaOficial"
+    out = {}
+    try:
+        resp = requests.get(LEIDSA_OFICIAL_PAGE, timeout=18, headers=_resultados_http_headers())
+        if resp.status_code != 200 or len(resp.text or "") < 8000:
+            _resultados_hoy_debug_log(
+                "fuente %s omitida (sitio SPA o respuesta corta); usar Conectate para Leidsa",
+                fuente,
+            )
+            return out
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for block in soup.select("[class*='result'], [class*='quiniela'], [class*='pega']"):
+            title = block.get_text(" ", strip=True)[:120]
+            internal = _conectate_label_to_internal_key(title)
+            if not internal or internal not in RESULT_LOTTERY_TO_TICKET:
+                continue
+            nums = re.findall(r"\b(\d{1,2})\b", title)
+            if len(nums) < 3:
+                continue
+            hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+            built = _resultados_build_item(nums[0], nums[1], nums[2], hoy_iso, title[:80], fuente)
+            _resultados_put_map(out, internal, built, fuente)
+    except Exception as ex:
+        _resultados_hoy_debug_log("fuente %s ERROR: %s", fuente, ex)
+    return out
+
+
+def _resultados_merge_mapas_fuentes(por_fuente, hoy_iso):
+    """
+    Une mapas clave_interna→item de todas las fuentes RD.
+    Prioridad: Conectate → LD.com → loteriadominicana.do → sorteosrd → enloteria → .us → leidsa.
+    Rellena huecos (p. ej. King Noche si LD devuelve HTTP 500).
+    """
+    prioridad = (
+        "Conectate",
+        "LoteriasDominicanas",
+        "LoteriaDominicanaDO",
+        "SorteosRD",
+        "EnLoteria",
+        "LoteriasDominicanasUS",
+        "LeidsaOficial",
+    )
+    merged = {}
+    for fuente in prioridad:
+        data = por_fuente.get(fuente) or {}
+        for key, item in data.items():
+            if not isinstance(item, dict) or not item.get("n1"):
+                continue
+            if key in merged:
+                continue
+            fecha = (item.get("fecha") or hoy_iso)[:10]
+            if not _resultados_session_fecha_aceptable(fecha, hoy_iso):
+                _resultados_hoy_debug_log(
+                    "IGNORADO merge fuente=%s clave=%r fecha=%s motivo=fecha_fuera_ventana",
+                    fuente,
+                    key,
+                    fecha,
+                )
+                continue
+            merged[key] = {**item, "fecha": fecha, "fuente_merge": fuente}
+    return merged
+
+
+def _resultados_recopilar_todas_fuentes_rd():
+    """Ejecuta las 7 fuentes RD y devuelve (merged, por_fuente)."""
+    hoy_iso = ahora_rd().date().strftime("%Y-%m-%d")
+    parsers = (
+        ("Conectate", _parse_conectate_resultados),
+        ("LoteriasDominicanas", _parse_loteriasdominicanas_resultados),
+        ("LoteriaDominicanaDO", _parse_loteriadominicana_do_resultados),
+        ("SorteosRD", _parse_sorteosrd_resultados),
+        ("EnLoteria", _parse_enloteria_resultados),
+        ("LoteriasDominicanasUS", _parse_loteriasdominicanas_us_resultados),
+        ("LeidsaOficial", _parse_leidsa_oficial_resultados),
+    )
+    por_fuente = {}
+    for nombre, fn in parsers:
+        try:
+            data = fn() or {}
+            por_fuente[nombre] = data
+            _resultados_hoy_debug_log(
+                "recopilación fuente=%s cantidad=%s claves=%s",
+                nombre,
+                len(data),
+                list(data.keys()),
+            )
+        except Exception as ex:
+            _resultados_hoy_debug_log("recopilación fuente=%s ERROR: %s", nombre, ex)
+            por_fuente[nombre] = {}
+    merged = _resultados_merge_mapas_fuentes(por_fuente, hoy_iso)
+    _resultados_hoy_debug_log(
+        "merge total fuentes=%s merged=%s claves=%s",
+        len(parsers),
+        len(merged),
+        list(merged.keys()),
+    )
+    return merged, por_fuente
 
 
 def _resultados_diagnostico_scraper():
@@ -5888,47 +6362,24 @@ def _resultado_new_york_draw_valido(draw_val):
 
 def obtener_resultados_loteria(return_stats=False):
     """
-    - Lee resultados desde Conectate (HTML legacy o API Nuxt).
-    - Si falla, intenta LoteriasDominicanas.com (misma API).
-    - Inserta en tabla resultados si no existe registro para fecha+lottery.
+    Recopila resultados de las fuentes RD integradas (Conectate, LD, loteriadominicana.do,
+    sorteosrd, enloteria, loteriasdominicanas.us, leidsa.com) y fusiona por clave interna.
+  Inserta en tabla resultados si no existe registro para fecha+lottery+sorteo.
     Devuelve True si hubo datos del scrape y commit en BD (éxito parcial o total).
-    False si falló red/parse o no hubo filas — no invalidar caché en ese caso.
     """
-    _resultados_hoy_debug_log("obtener_resultados_loteria inicio")
+    _resultados_hoy_debug_log("obtener_resultados_loteria inicio (multi-fuente RD)")
     fuente = None
     data = {}
+    por_fuente = {}
     try:
-        data = _parse_conectate_resultados() or {}
-        if data:
-            fuente = "Conectate"
-            _resultados_hoy_debug_log("Fuente: Conectate cantidad=%s", len(data))
+        data, por_fuente = _resultados_recopilar_todas_fuentes_rd()
+        activas = [n for n, d in (por_fuente or {}).items() if d]
+        fuente = "multi:" + (",".join(activas) if activas else "ninguna")
+        _resultados_hoy_debug_log("Fuentes activas=%s merged=%s", activas, len(data or {}))
     except Exception as e:
-        _resultados_hoy_debug_log("Conectate falló: %s", e)
-        log.error("[RESULTADOS] _parse_conectate_resultados: %s", e, exc_info=True)
+        _resultados_hoy_debug_log("multi-fuente falló: %s", e)
+        log.error("[RESULTADOS] _resultados_recopilar_todas_fuentes_rd: %s", e, exc_info=True)
         data = {}
-
-    if not data:
-        _resultados_hoy_debug_log("Conectate falló")
-        _resultados_hoy_debug_log("Cambiando a fallback: LoteriasDominicanas")
-        try:
-            data = _parse_loteriasdominicanas_resultados() or {}
-            if data:
-                fuente = "LoteriasDominicanas"
-                _resultados_hoy_debug_log("Fuente: LoteriasDominicanas cantidad=%s", len(data))
-        except Exception as e2:
-            _resultados_hoy_debug_log("Error exacto fallback LoteriasDominicanas: %s", e2)
-            log.error("[RESULTADOS] _parse_loteriasdominicanas_resultados: %s", e2, exc_info=True)
-            if return_stats:
-                return {
-                    "ok": False,
-                    "error": "parse_error",
-                    "fuente": fuente,
-                    "guardados": 0,
-                    "omitidos": 0,
-                    "nuevos_insertados": 0,
-                    "actualizados": 0,
-                }
-            return False
 
     if not data:
         _resultados_hoy_debug_log("sin datos del scraper (0 resultados)")
@@ -50813,10 +51264,10 @@ def admin_debug_la_suerte():
 table{{border-collapse:collapse;width:100%}}th,td{{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}}
 th{{background:#f0f4f8}}pre{{max-width:420px}}</style>
 </head><body>
-<h1>Debug La Suerte / King Lottery</h1>
-<p>Hoy RD: <b>{hoy_iso}</b>. Compara Conectate vs fallback LoteriasDominicanas.</p>
-<p><b>Causa raíz típica:</b> Conectate renombró títulos API a «La Suerte Día/Tarde» y «King Lottery Día/Noche»;
-el parser solo reconocía «La Suerte 12:30», «La Suerte 18:00», «King Lottery 12:30/7:30».</p>
+<h1>Debug La Suerte / King — 7 fuentes RD</h1>
+<p>Hoy RD: <b>{hoy_iso}</b>. Fuentes: Conectate, LoteriasDominicanas.com, loteriadominicana.com.do,
+sorteosrd.com, enloteria.com, loteriasdominicanas.us, leidsa.com (solo LEIDSA).</p>
+<p>La fila <b>MERGED</b> es lo que guarda el scraper al actualizar resultados.</p>
 <table>
 <thead><tr>
 <th>Fuente</th><th>Título API</th><th>Normalizado</th><th>Clave interna</th><th>Lotería BD</th><th>Sorteo BD</th>
